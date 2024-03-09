@@ -21,5 +21,6 @@ namespace VCX::Labs::RigidBody {
         void apply(glm::vec3 force, glm::vec3 point = glm::vec3(0,0,0));
         void applyTorque(glm::vec3 torque);
         void update(float delta);
+        void resetForces();
     };
 }

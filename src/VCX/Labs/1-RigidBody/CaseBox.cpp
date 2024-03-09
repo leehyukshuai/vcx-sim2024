@@ -55,22 +55,44 @@ namespace VCX::Labs::RigidBody {
     }
 
     void CaseBox::OnSetupPropsUI() {
-        if (ImGui::CollapsingHeader("Details", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Text("pos.x:\t%.1f", _rigidBody.position.x);
-            ImGui::Text("pos.y:\t%.1f", _rigidBody.position.y);
-            ImGui::Text("pos.z:\t%.1f", _rigidBody.position.z);
-            ImGui::Spacing();
-            ImGui::Text("vel.x:\t%.1f", _rigidBody.velocity.x);
-            ImGui::Text("vel.y:\t%.1f", _rigidBody.velocity.y);
-            ImGui::Text("vel.z:\t%.1f", _rigidBody.velocity.z);
+        if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Checkbox("pause", &_paused);
+            ImGui::SameLine();
+            ImGui::Checkbox("x-ray", &_xrayed);
         }
-        if (ImGui::CollapsingHeader("Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::ColorEdit3("Box Color", glm::value_ptr(_boxColor));
+        if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::Button("z-view")) {
+                _cameraManager.Save(Engine::Camera({.Eye = glm::vec3(0,0,10)}));
+                _cameraManager.Reset(_camera);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("x-view")) {
+                _cameraManager.Save(Engine::Camera({.Eye = glm::vec3(10,0,0)}));
+                _cameraManager.Reset(_camera);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("y-view")) {
+                _cameraManager.Save(Engine::Camera({.Eye = glm::vec3(0,10,0)}));
+                _cameraManager.Reset(_camera);
+            }
+        }
+        if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
+            ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
+            ImGui::InputFloat3("position", glm::value_ptr(_rigidBody.position), "%.1f");
+            ImGui::InputFloat3("velocity", glm::value_ptr(_rigidBody.velocity), "%.1f");
+            auto eulerAngles = glm::eulerAngles(_rigidBody.orientation) * 180.0f / glm::pi<float>();
+            ImGui::InputFloat3("orientation", glm::value_ptr(eulerAngles), "%.1f");
+            eulerAngles *= glm::pi<float>() / 180.0f;
+            _rigidBody.orientation = glm::quat(eulerAngles);
+            ImGui::InputFloat3("omega", glm::value_ptr(_rigidBody.omega), "%.1f");
             ImGui::SliderFloat("x", &_dim[0], 0.5, 4);
             ImGui::SliderFloat("y", &_dim[1], 0.5, 4);
             ImGui::SliderFloat("z", &_dim[2], 0.5, 4);
         }
-        ImGui::Spacing();
+        if (ImGui::CollapsingHeader("Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::ColorEdit3("Box Color", glm::value_ptr(_boxColor));
+        }
     }
 
     Common::CaseRenderResult CaseBox::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
@@ -91,19 +113,23 @@ namespace VCX::Labs::RigidBody {
         VertsPosition[5] = + new_x - new_y + new_z;
         VertsPosition[6] = + new_x - new_y - new_z;
         VertsPosition[7] = - new_x - new_y - new_z;
+        // update mass
+        _rigidBody.mass = (_dim[0] * _dim[1] * _dim[2]) / 6.0f;
         // update inertia
         _rigidBody.inertia[0][0] = _rigidBody.mass/12.0*(_dim[1]*_dim[1]+_dim[2]*_dim[2]);
         _rigidBody.inertia[1][1] = _rigidBody.mass/12.0*(_dim[0]*_dim[0]+_dim[2]*_dim[2]);
         _rigidBody.inertia[2][2] = _rigidBody.mass/12.0*(_dim[0]*_dim[0]+_dim[1]*_dim[1]);
         
         // apply damping
-        float translationalDamping = -0.1f;
-        _rigidBody.apply(glm::normalize(_rigidBody.velocity) * glm::length2(_rigidBody.velocity) * translationalDamping);
-        float rotatinalDamping = -0.1f;
-        _rigidBody.applyTorque(glm::normalize(_rigidBody.omega) * glm::length2(_rigidBody.omega) * rotatinalDamping);
+        _rigidBody.apply(glm::normalize(_rigidBody.velocity) * glm::length2(_rigidBody.velocity) * -_translationalDamping);
+        _rigidBody.applyTorque(glm::normalize(_rigidBody.omega) * glm::length2(_rigidBody.omega) * -_rotationalDamping);
 
         // update
-        _rigidBody.update(Engine::GetDeltaTime());
+        if (_paused) {
+            _rigidBody.resetForces();
+        } else {
+            _rigidBody.update(Engine::GetDeltaTime());
+        }
 
         // rendering
         _frame.Resize(desiredSize);
@@ -117,7 +143,7 @@ namespace VCX::Labs::RigidBody {
 
         gl_using(_frame);
         // glEnable(GL_LINE_SMOOTH);
-        // glEnable(GL_DEPTH_TEST);
+        if (!_xrayed) glEnable(GL_DEPTH_TEST);
         // glLineWidth(.5f);
 
         for (auto &vert : VertsPosition) {
@@ -140,7 +166,7 @@ namespace VCX::Labs::RigidBody {
         _coordItem.Draw({ _coordProgram.Use() });
 
         // glLineWidth(1.f);
-        // glDisable(GL_DEPTH_TEST);
+        if (!_xrayed) glDisable(GL_DEPTH_TEST);
         // glDisable(GL_LINE_SMOOTH);
 
         return Common::CaseRenderResult {

@@ -29,7 +29,10 @@ namespace VCX::Labs::RigidBody {
         orientation += ((delta / 2) * glm::quat(0, omega[0], omega[1], omega[2])) * orientation;
         orientation = glm::normalize(orientation);
         // clear forces
+        resetForces();
+    }
+    void RigidBody::resetForces() {
         forceList.clear();
         totalTorque = glm::vec3(0,0,0);
     }
-}
+} // namespace VCX::Labs::RigidBody
