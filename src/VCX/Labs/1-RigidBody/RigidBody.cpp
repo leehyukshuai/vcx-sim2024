@@ -9,7 +9,7 @@ namespace VCX::Labs::RigidBody {
     }
     void RigidBody::update(float delta) {
         // translational state
-        glm::vec3 totalForce = glm::vec3(0,0,0);
+        glm::vec3 totalForce = glm::vec3(0, 0, 0);
         for (auto forcePair : forceList) {
             glm::vec3 force = forcePair.first;
             totalForce += force;
@@ -19,8 +19,8 @@ namespace VCX::Labs::RigidBody {
         // rotational state
         auto rotationMatrix = glm::toMat3(orientation);
         for (auto forcePair : forceList) {
-            glm::vec3 force = forcePair.first;
-            glm::vec3 point = forcePair.second;
+            glm::vec3 force  = forcePair.first;
+            glm::vec3 point  = forcePair.second;
             glm::vec3 torque = glm::cross((rotationMatrix * point), force);
             totalTorque += torque;
         }
@@ -33,6 +33,59 @@ namespace VCX::Labs::RigidBody {
     }
     void RigidBody::resetForces() {
         forceList.clear();
-        totalTorque = glm::vec3(0,0,0);
+        totalTorque = glm::vec3(0, 0, 0);
+    }
+    void RigidBody::setInertia() {
+        inertia[0][0] = 1.0f;
+        inertia[1][1] = 1.0f;
+        inertia[2][2] = 1.0f;
+    }
+    void RigidBody::setMass() {
+        mass = 1.0f;
+    }
+    void RigidBody::applyTranslDamping(float translDampingFactor) {
+        apply(-translDampingFactor * glm::length2(velocity) * glm::normalize(velocity));
+    }
+    void RigidBody::applyRotateDamping(float rotateDampingFactor) {
+        applyTorque(-rotateDampingFactor * glm::length2(omega) * glm::normalize(omega));
+    }
+    void Box::setInertia() {
+        inertia[0][0] = mass / 12.0 * (dimension[1] * dimension[1] + dimension[2] * dimension[2]);
+        inertia[1][1] = mass / 12.0 * (dimension[0] * dimension[0] + dimension[2] * dimension[2]);
+        inertia[2][2] = mass / 12.0 * (dimension[0] * dimension[0] + dimension[1] * dimension[1]);
+    }
+    void Box::setMass() {
+        mass = density * dimension.x * dimension.y * dimension.z;
+    }
+    BoxRenderItem::BoxRenderItem():
+        faceItem(Engine::GL::VertexLayout().Add<glm::vec3>("position", Engine::GL::DrawFrequency::Stream, 0), Engine::GL::PrimitiveType::Triangles),
+        lineItem(Engine::GL::VertexLayout().Add<glm::vec3>("position", Engine::GL::DrawFrequency::Stream, 0), Engine::GL::PrimitiveType::Lines) {
+        const static std::vector<std::uint32_t> tri_index  = { 0, 1, 2, 0, 2, 3, 1, 4, 0, 1, 4, 5, 1, 6, 5, 1, 2, 6, 2, 3, 7, 2, 6, 7, 0, 3, 7, 0, 4, 7, 4, 5, 6, 4, 6, 7 };
+        const static std::vector<std::uint32_t> line_index = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
+        faceItem.UpdateElementBuffer(tri_index);
+        lineItem.UpdateElementBuffer(line_index);
+    }
+    void BoxRenderItem::update(float delta, bool paused) {
+        box.update(delta);
+        float x             = box.dimension[0] / 2.0;
+        float y             = box.dimension[1] / 2.0;
+        float z             = box.dimension[2] / 2.0;
+        auto  VertsPosition = std::vector<glm::vec3>({
+            {-x, -y,  z},
+            { x, -y,  z},
+            { x, -y, -z},
+            {-x, -y, -z},
+            {-x,  y,  z},
+            { x,  y,  z},
+            { x,  y, -z},
+            {-x,  y, -z},
+        });
+        for (auto & vert : VertsPosition) {
+            vert = glm::rotate(box.orientation, vert);
+            vert = box.position + vert;
+        }
+        auto span_bytes = Engine::make_span_bytes<glm::vec3>(VertsPosition);
+        lineItem.UpdateVertexBuffer("position", span_bytes);
+        faceItem.UpdateVertexBuffer("position", span_bytes);
     }
 } // namespace VCX::Labs::RigidBody
