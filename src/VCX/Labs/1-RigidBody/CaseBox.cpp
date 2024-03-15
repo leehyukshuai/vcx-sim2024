@@ -56,9 +56,9 @@ namespace VCX::Labs::RigidBody {
 
     void CaseBox::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("pause", &_paused);
-            ImGui::SameLine();
-            ImGui::Checkbox("x-ray", &_xrayed);
+            if (ImGui::Button(!_paused ? "pause" : "start")) {
+                _paused = !_paused;
+            }
         }
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::Button("z-view")) {
@@ -86,9 +86,9 @@ namespace VCX::Labs::RigidBody {
             eulerAngles *= glm::pi<float>() / 180.0f;
             _rigidBody.orientation = glm::quat(eulerAngles);
             ImGui::InputFloat3("omega", glm::value_ptr(_rigidBody.omega), "%.1f");
-            ImGui::SliderFloat("x", &_dim[0], 0.5, 4);
-            ImGui::SliderFloat("y", &_dim[1], 0.5, 4);
-            ImGui::SliderFloat("z", &_dim[2], 0.5, 4);
+            ImGui::SliderFloat("dim-x", &_dim[0], 0.5, 4);
+            ImGui::SliderFloat("dim-y", &_dim[1], 0.5, 4);
+            ImGui::SliderFloat("dim-z", &_dim[2], 0.5, 4);
         }
         if (ImGui::CollapsingHeader("Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::ColorEdit3("Box Color", glm::value_ptr(_boxColor));
@@ -121,8 +121,11 @@ namespace VCX::Labs::RigidBody {
         _rigidBody.inertia[2][2] = _rigidBody.mass/12.0*(_dim[0]*_dim[0]+_dim[1]*_dim[1]);
         
         // apply damping
-        _rigidBody.apply(glm::normalize(_rigidBody.velocity) * glm::length2(_rigidBody.velocity) * -_translationalDamping);
-        _rigidBody.applyTorque(glm::normalize(_rigidBody.omega) * glm::length2(_rigidBody.omega) * -_rotationalDamping);
+
+        if (_rigidBody.velocity != glm::vec3(0,0,0))
+            _rigidBody.apply(glm::normalize(_rigidBody.velocity) * glm::length2(_rigidBody.velocity) * -_translationalDamping);
+        if (_rigidBody.omega != glm::vec3(0,0,0))
+            _rigidBody.applyTorque(glm::normalize(_rigidBody.omega) * glm::length2(_rigidBody.omega) * -_rotationalDamping);
 
         // update
         if (_paused) {
@@ -143,7 +146,6 @@ namespace VCX::Labs::RigidBody {
 
         gl_using(_frame);
         // glEnable(GL_LINE_SMOOTH);
-        if (!_xrayed) glEnable(GL_DEPTH_TEST);
         // glLineWidth(.5f);
 
         for (auto &vert : VertsPosition) {
@@ -166,7 +168,6 @@ namespace VCX::Labs::RigidBody {
         _coordItem.Draw({ _coordProgram.Use() });
 
         // glLineWidth(1.f);
-        if (!_xrayed) glDisable(GL_DEPTH_TEST);
         // glDisable(GL_LINE_SMOOTH);
 
         return Common::CaseRenderResult {

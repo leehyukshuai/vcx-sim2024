@@ -29,7 +29,6 @@ namespace VCX::Labs::RigidBody {
         CollisionType                       _type { EDGE_EDGE };
         bool                                _reset { true };
         bool                                _paused { true };
-        bool                                _xrayed { true };
         float                               _translationalDamping = 0.1f;
         float                               _rotationalDamping = 0.1f;
 

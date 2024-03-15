@@ -24,7 +24,6 @@ namespace VCX::Labs::RigidBody {
 
     private:
         bool                                _paused { false };
-        bool                                _xrayed { true };
         float                               _translationalDamping = 0.1f;
         float                               _rotationalDamping = 0.1f;
 

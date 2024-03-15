@@ -44,10 +44,14 @@ namespace VCX::Labs::RigidBody {
         mass = 1.0f;
     }
     void RigidBody::applyTranslDamping(float translDampingFactor) {
-        apply(-translDampingFactor * glm::length2(velocity) * glm::normalize(velocity));
+        if (velocity != glm::vec3(0, 0, 0)) {
+            apply(-translDampingFactor * glm::length2(velocity) * glm::normalize(velocity));
+        }
     }
     void RigidBody::applyRotateDamping(float rotateDampingFactor) {
-        applyTorque(-rotateDampingFactor * glm::length2(omega) * glm::normalize(omega));
+        if (omega != glm::vec3(0, 0, 0)) {
+            applyTorque(-rotateDampingFactor * glm::length2(omega) * glm::normalize(omega));
+        }
     }
     void Box::setInertia() {
         inertia[0][0] = mass / 12.0 * (dimension[1] * dimension[1] + dimension[2] * dimension[2]);
@@ -66,7 +70,10 @@ namespace VCX::Labs::RigidBody {
         lineItem.UpdateElementBuffer(line_index);
     }
     void BoxRenderItem::update(float delta, bool paused) {
-        box.update(delta);
+        if (! paused)
+            box.update(delta);
+        else
+            box.resetForces();
         float x             = box.dimension[0] / 2.0;
         float y             = box.dimension[1] / 2.0;
         float z             = box.dimension[2] / 2.0;

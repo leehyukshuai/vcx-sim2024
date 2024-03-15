@@ -39,16 +39,19 @@ namespace VCX::Labs::RigidBody {
 
     void CaseCollision::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("pause", &_paused);
+            if (ImGui::Button(!_paused ? "pause" : "start")) {
+                _paused = !_paused;
+            }
             ImGui::SameLine();
-            ImGui::Checkbox("x-ray", &_xrayed);
+            if (ImGui::Button("reset")) {
+                _paused = true;
+                _reset = true;
+            }
             int typeIndex = static_cast<int>(_type);
             ImGui::Combo("Collision Type", &typeIndex, "edge-edge\0point-face\0face-face\0");
             if (typeIndex != static_cast<int>(_type)) {
                 _type  = static_cast<CollisionType>(typeIndex);
-                _reset = true;
-            }
-            if (ImGui::Button("reset")) {
+                _paused = true;
                 _reset = true;
             }
         }
@@ -104,7 +107,6 @@ namespace VCX::Labs::RigidBody {
 
         gl_using(_frame);
         glEnable(GL_LINE_SMOOTH);
-        if (! _xrayed) glEnable(GL_DEPTH_TEST);
 
         _program.GetUniforms().SetByName("u_Color", _boxA.color);
         _boxA.faceItem.Draw({ _program.Use() });
@@ -117,7 +119,6 @@ namespace VCX::Labs::RigidBody {
 
         _coordItem.Draw({ _coordProgram.Use() });
 
-        if (! _xrayed) glDisable(GL_DEPTH_TEST);
         glDisable(GL_LINE_SMOOTH);
 
         return Common::CaseRenderResult {
@@ -139,18 +140,20 @@ namespace VCX::Labs::RigidBody {
     }
 
     void CaseCollision::ResetScene(CollisionType type) {
+        auto pi = glm::pi<float>();
+        auto deg2rad = [pi](float deg){return deg * pi / 180.0f;};
         switch (type) {
         case EDGE_EDGE:
-            _boxA.box.orientation = glm::quat(glm::vec3(3.14 / 6.0, 0, 0));
-            _boxB.box.orientation = glm::quat(glm::vec3(-3.14 / 6.0, 0, 0));
+            _boxA.box.orientation = glm::quat(glm::vec3(0, deg2rad(-20), deg2rad(20)));
+            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(90), deg2rad(20), 0));
             break;
         case FACE_FACE:
-            _boxA.box.orientation = glm::quat(glm::vec3(3.14 / 6.0, 0, 0));
-            _boxB.box.orientation = glm::quat(glm::vec3(-3.14 / 6.0, 0, 0));
+            _boxA.box.orientation = glm::quat(glm::vec3(deg2rad(30), 0, 0));
+            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(-30), 0, 0));
             break;
         case POINT_FACE:
-            _boxA.box.orientation = glm::quat(glm::vec3(3.14 / 6.0, 0, 0));
-            _boxB.box.orientation = glm::quat(glm::vec3(-3.14 / 6.0, 0, 0));
+            _boxA.box.orientation = glm::quat(glm::vec3(deg2rad(-150), deg2rad(-12), deg2rad(-100)));
+            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(-30), 0, 0));
             break;
         }
         _boxA.box.omega     = glm::vec3(0, 0, 0);
