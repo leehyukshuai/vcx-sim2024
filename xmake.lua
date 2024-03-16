@@ -109,6 +109,7 @@ target("lab1")
     add_files      ("src/VCX/Labs/1-RigidBody/*.cpp")
     if is_plat("windows") then
         add_cxflags("/EHsc")
+        add_cxflags("/bigobj")
     end
 
 target("lab2")

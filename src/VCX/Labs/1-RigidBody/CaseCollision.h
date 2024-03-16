@@ -7,6 +7,7 @@
 #include "Labs/Common/ImageRGB.h"
 #include "Labs/Common/OrbitCameraManager.h"
 #include "RigidBody.h"
+#include "Collision.h"
 namespace VCX::Labs::RigidBody {
     enum CollisionType {EDGE_EDGE, POINT_FACE, FACE_FACE};
 
@@ -40,5 +41,6 @@ namespace VCX::Labs::RigidBody {
         Engine::GL::UniqueRenderItem        _coordItem;  // render the coordinates
         Engine::Camera                      _camera { .Eye = glm::vec3(5, 5, 5) };
         Common::OrbitCameraManager          _cameraManager;
+        BoxCollisionSystem                  _collisionSystem;
     };
 } // namespace VCX::Labs::RigidBody

@@ -29,7 +29,15 @@ namespace VCX::Labs::RigidBody {
                                         Engine::GL::SharedShader("assets/shaders/flat.frag") })),
         _coordProgram(Engine::GL::UniqueProgram({ Engine::GL::SharedShader("assets/shaders/coord.vert"),
                                                   Engine::GL::SharedShader("assets/shaders/coord.frag") })),
-        _coordItem(Engine::GL::VertexLayout().Add<glm::vec3>("position", Engine::GL::DrawFrequency::Static, 0).Add<glm::vec3>("color", Engine::GL::DrawFrequency::Static, 1), Engine::GL::PrimitiveType::Lines) {
+        _coordItem(Engine::GL::VertexLayout()
+            .Add<glm::vec3>("position", Engine::GL::DrawFrequency::Static, 0)
+            .Add<glm::vec3>("color", Engine::GL::DrawFrequency::Static, 1)
+            , Engine::GL::PrimitiveType::Lines)
+        {
+
+        _collisionSystem.items.push_back(&_boxA.box);
+        _collisionSystem.items.push_back(&_boxB.box);
+
         _coordItem.UpdateVertexBuffer("position", Engine::make_span_bytes<glm::vec3>(c_PositionData));
         _coordItem.UpdateVertexBuffer("color", Engine::make_span_bytes<glm::vec3>(c_ColorData));
 
@@ -87,14 +95,25 @@ namespace VCX::Labs::RigidBody {
             ResetScene(_type);
         }
 
-        _boxA.box.applyRotateDamping(_rotationalDamping);
-        _boxA.box.applyTranslDamping(_translationalDamping);
-        _boxB.box.applyRotateDamping(_rotationalDamping);
-        _boxB.box.applyTranslDamping(_translationalDamping);
+        if (!_paused) {
+            // damping
+            _boxA.box.applyRotateDamping(_rotationalDamping);
+            _boxA.box.applyTranslDamping(_translationalDamping);
+            _boxB.box.applyRotateDamping(_rotationalDamping);
+            _boxB.box.applyTranslDamping(_translationalDamping);
+            // update
+            _boxA.update(0.01f);
+            _boxB.update(0.01f);
+            // _boxA.update(Engine::GetDeltaTime());
+            // _boxB.update(Engine::GetDeltaTime());
+            // collision detect & handle
+            static bool debugFlag = true;
+            if (debugFlag) {
+                _collisionSystem.collisionDetect();
+                _collisionSystem.collisionHandle();
+            }
+        }
 
-        // update
-        _boxA.update(Engine::GetDeltaTime(), _paused);
-        _boxB.update(Engine::GetDeltaTime(), _paused);
 
         // rendering
         _frame.Resize(desiredSize);
@@ -158,8 +177,8 @@ namespace VCX::Labs::RigidBody {
         }
         _boxA.box.omega     = glm::vec3(0, 0, 0);
         _boxB.box.omega     = glm::vec3(0, 0, 0);
-        _boxA.box.position  = glm::vec3(-5, 0, 0);
-        _boxB.box.position  = glm::vec3(5, 0, 0);
+        _boxA.box.position  = glm::vec3(-2, 0, 0);
+        _boxB.box.position  = glm::vec3(2, 0, 0);
         _boxA.box.velocity  = glm::vec3(1, 0, 0);
         _boxB.box.velocity  = glm::vec3(-1, 0, 0);
         _boxA.box.dimension = glm::vec3(1, 2, 3);
