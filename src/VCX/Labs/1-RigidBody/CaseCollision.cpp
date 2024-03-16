@@ -43,6 +43,8 @@ namespace VCX::Labs::RigidBody {
 
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
+
+        ResetScene(EDGE_EDGE);
     }
 
     void CaseCollision::OnSetupPropsUI() {
@@ -177,8 +179,8 @@ namespace VCX::Labs::RigidBody {
         }
         _boxA.box.omega     = glm::vec3(0, 0, 0);
         _boxB.box.omega     = glm::vec3(0, 0, 0);
-        _boxA.box.position  = glm::vec3(-2, 0, 0);
-        _boxB.box.position  = glm::vec3(2, 0, 0);
+        _boxA.box.position  = glm::vec3(-2, -0.2, 0);
+        _boxB.box.position  = glm::vec3(2, 0.2, 0);
         _boxA.box.velocity  = glm::vec3(1, 0, 0);
         _boxB.box.velocity  = glm::vec3(-1, 0, 0);
         _boxA.box.dimension = glm::vec3(1, 2, 3);
