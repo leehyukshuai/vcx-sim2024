@@ -15,6 +15,7 @@ namespace VCX::Labs::RigidBody {
         glm::vec3                                    totalTorque = glm::vec3(0, 0, 0);
 
     public:
+        bool         isStatic    = false;
         float        mass        = 1.0f;
         float        density     = 1.0f;
         glm::vec3    position    = glm::vec3(0, 0, 0);

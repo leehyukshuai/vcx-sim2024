@@ -21,7 +21,7 @@ namespace VCX::Labs::RigidBody {
                 fcl::CollisionRequest<float> collisionRequest(8, true);
                 fcl::CollisionResult<float>  collisionResult;
                 fcl::collide(&box_A, &box_B, collisionRequest, collisionResult);
-                if (! collisionResult.isCollision()) return;
+                if (! collisionResult.isCollision()) continue;;
                 std::vector<fcl::Contact<float>> fclContacts;
                 collisionResult.getContacts(fclContacts);
                 for (auto const & contact : fclContacts) { // You can decide whether define your own Contact
@@ -50,8 +50,6 @@ namespace VCX::Labs::RigidBody {
                 float  ma    = a->mass;
                 float  mb    = b->mass;
                 auto & n     = contact.normal;
-                auto & pa    = a->position;
-                auto & pb    = b->position;
                 auto   rota  = glm::toMat3(a->orientation);
                 auto   Ia    = rota * a->inertia * glm::transpose(rota);
                 auto   Iainv = glm::inverse(Ia);
@@ -59,7 +57,7 @@ namespace VCX::Labs::RigidBody {
                 auto   Ib    = rotb * b->inertia * glm::transpose(rotb);
                 auto   Ibinv = glm::inverse(Ib);
                 // Empirical collision model based on c (coefficient of restitution)
-                auto J = ((-(1.0f + c) * vrel) / (1.0f / ma + 1.0f / mb + glm::dot(n, (Iainv * glm::cross(glm::cross(pa, n), pa) + Ibinv * glm::cross(glm::cross(pb, n), pb))))) * n;
+                auto J = ((-(1.0f + c) * vrel) / (1.0f / ma + 1.0f / mb + glm::dot(n, (Iainv * glm::cross(glm::cross(pai, n), pai) + Ibinv * glm::cross(glm::cross(pbi, n), pbi))))) * n;
                 // apply impulse J
                 multiCollisionCount[contact.id1] ++;
                 multiCollisionCount[contact.id2] ++;
@@ -70,7 +68,7 @@ namespace VCX::Labs::RigidBody {
             }
         }
         for (int i = 0; i < items.size(); ++i) {
-            if (multiCollisionCount[i]) {
+            if (multiCollisionCount[i] && items[i]->isStatic == false) {
                 items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
                 items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
             }

@@ -8,6 +8,10 @@ namespace VCX::Labs::RigidBody {
         totalTorque += torque;
     }
     void RigidBody::update(float delta) {
+        if (isStatic) {
+            resetForces();
+            return;
+        }
         // translational state
         glm::vec3 totalForce = glm::vec3(0, 0, 0);
         for (auto forcePair : forceList) {
