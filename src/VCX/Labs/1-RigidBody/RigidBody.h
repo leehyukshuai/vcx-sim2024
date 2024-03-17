@@ -47,7 +47,7 @@ namespace VCX::Labs::RigidBody {
         Engine::GL::UniqueIndexedRenderItem lineItem;
         Engine::GL::UniqueIndexedRenderItem faceItem;
         BoxRenderItem();
-        void update(float delta, bool paused = false);
+        void update(float delta);
     };
 
 } // namespace VCX::Labs::RigidBody

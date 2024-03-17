@@ -73,11 +73,8 @@ namespace VCX::Labs::RigidBody {
         faceItem.UpdateElementBuffer(tri_index);
         lineItem.UpdateElementBuffer(line_index);
     }
-    void BoxRenderItem::update(float delta, bool paused) {
-        if (! paused)
-            box.update(delta);
-        else
-            box.resetForces();
+    void BoxRenderItem::update(float delta) {
+        box.update(delta);
         float x             = box.dimension[0] / 2.0;
         float y             = box.dimension[1] / 2.0;
         float z             = box.dimension[2] / 2.0;
