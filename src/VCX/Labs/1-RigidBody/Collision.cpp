@@ -21,7 +21,8 @@ namespace VCX::Labs::RigidBody {
                 fcl::CollisionRequest<float> collisionRequest(8, true);
                 fcl::CollisionResult<float>  collisionResult;
                 fcl::collide(&box_A, &box_B, collisionRequest, collisionResult);
-                if (! collisionResult.isCollision()) continue;;
+                if (! collisionResult.isCollision()) continue;
+                ;
                 std::vector<fcl::Contact<float>> fclContacts;
                 collisionResult.getContacts(fclContacts);
                 for (auto const & contact : fclContacts) { // You can decide whether define your own Contact
@@ -33,10 +34,10 @@ namespace VCX::Labs::RigidBody {
     void BoxCollisionSystem::collisionHandle() {
         // frictionless collision model
         // c represents coefficient of restitution
-        static const float c = 0.6f;
+        static const float     c = 0.6f;
         std::vector<glm::vec3> totalVelocityChange(items.size());
         std::vector<glm::vec3> totalOmegaChange(items.size());
-        std::vector<int> multiCollisionCount(items.size());
+        std::vector<int>       multiCollisionCount(items.size());
         for (auto const & contact : contacts) {
             auto  a    = items[contact.id1];
             auto  b    = items[contact.id2];
@@ -45,34 +46,48 @@ namespace VCX::Labs::RigidBody {
             auto  vai  = glm::vec3(a->velocity + glm::cross(a->omega, contact.pos - a->position));
             auto  vbi  = glm::vec3(b->velocity + glm::cross(b->omega, contact.pos - b->position));
             float vrel = glm::dot(vai - vbi, contact.normal);
-            // when collision happens
-            if (vrel < 0) {
-                float  ma    = a->mass;
-                float  mb    = b->mass;
+            if (vrel <= 0) {
+                // when collision happens
+                float  mai   = a->isStatic ? 0 : 1 / a->mass;
+                float  mbi   = b->isStatic ? 0 : 1 / b->mass;
                 auto & n     = contact.normal;
                 auto   rota  = glm::toMat3(a->orientation);
                 auto   Ia    = rota * a->inertia * glm::transpose(rota);
-                auto   Iainv = glm::inverse(Ia);
+                auto   Iainv = a->isStatic ? glm::mat3(0) : glm::inverse(Ia);
                 auto   rotb  = glm::toMat3(b->orientation);
                 auto   Ib    = rotb * b->inertia * glm::transpose(rotb);
-                auto   Ibinv = glm::inverse(Ib);
+                auto   Ibinv = b->isStatic ? glm::mat3(0) : glm::inverse(Ib);
                 // Empirical collision model based on c (coefficient of restitution)
-                auto J = ((-(1.0f + c) * vrel) / (1.0f / ma + 1.0f / mb + glm::dot(n, (Iainv * glm::cross(glm::cross(pai, n), pai) + Ibinv * glm::cross(glm::cross(pbi, n), pbi))))) * n;
+                auto J = ((-(1.0f + c) * vrel) / (1.0f * mai + 1.0f * mbi + glm::dot(n, (Iainv * glm::cross(glm::cross(pai, n), pai) + Ibinv * glm::cross(glm::cross(pbi, n), pbi))))) * n;
                 // apply impulse J
-                multiCollisionCount[contact.id1] ++;
-                multiCollisionCount[contact.id2] ++;
-                totalVelocityChange[contact.id1] += J / ma;
-                totalVelocityChange[contact.id2] -= J / mb;
-                totalOmegaChange[contact.id1] += Iainv * glm::cross(pai, J);
-                totalOmegaChange[contact.id2] += Ibinv * glm::cross(pbi, -J);
+                // multiCollisionCount[contact.id1]++;
+                // multiCollisionCount[contact.id2]++;
+                // totalVelocityChange[contact.id1] += J * mai;
+                // totalVelocityChange[contact.id2] -= J * mbi;
+                // totalOmegaChange[contact.id1] += Iainv * glm::cross(pai, J);
+                // totalOmegaChange[contact.id2] += Ibinv * glm::cross(pbi, -J);
+                a->velocity += J * mai;
+                b->velocity -= J * mbi;
+                a->omega += Iainv * glm::cross(pai, J);
+                b->omega += Ibinv * glm::cross(pbi, -J);
+            } else {
+                // or just contact, we move them apart
+                if (a->isStatic && b->isStatic) continue;
+                bool anyStatic = (a->isStatic || b->isStatic);
+                float ma = a->mass;
+                float mb = b->mass;
+                float partb = anyStatic ? (a->isStatic ? 1 : 0) : ma / (ma+mb);
+                float parta = anyStatic ? (a->isStatic ? 0 : 1) : mb / (ma+mb);
+                a->position += contact.normal * contact.depth * parta;
+                b->position -= contact.normal * contact.depth * partb;
             }
         }
-        for (int i = 0; i < items.size(); ++i) {
-            if (multiCollisionCount[i] && items[i]->isStatic == false) {
-                items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
-                items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
-            }
-        }
+        // for (int i = 0; i < items.size(); ++i) {
+        //     if (multiCollisionCount[i]) {
+        //         items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
+        //         items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
+        //     }
+        // }
         contacts.clear();
     }
 

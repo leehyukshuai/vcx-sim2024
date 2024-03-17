@@ -74,6 +74,15 @@ namespace VCX::Labs::RigidBody {
             ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("gravity", &_gravity.y, 0.1f, 0.0f, 2.0f, "%.1f");
         }
+        if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::InputFloat3("position", glm::value_ptr(_boxes[0].box.position), "%.1f");
+            ImGui::InputFloat3("velocity", glm::value_ptr(_boxes[0].box.velocity), "%.1f");
+            auto eulerAngles = glm::eulerAngles(_boxes[0].box.orientation) * 180.0f / glm::pi<float>();
+            ImGui::InputFloat3("orientation", glm::value_ptr(eulerAngles), "%.1f");
+            eulerAngles *= glm::pi<float>() / 180.0f;
+            _boxes[0].box.orientation = glm::quat(eulerAngles);
+            ImGui::InputFloat3("omega", glm::value_ptr(_boxes[0].box.omega), "%.1f");
+        }
     }
 
     Common::CaseRenderResult CaseMulti::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
@@ -92,7 +101,7 @@ namespace VCX::Labs::RigidBody {
                 box.box.applyRotateDamping(_rotationalDamping);
                 box.box.applyTranslDamping(_translationalDamping);
                 // gravity
-                // box.box.apply(_gravity * box.box.mass);
+                box.box.apply(_gravity * box.box.mass);
                 // update
                 box.update(0.01f);
             }
