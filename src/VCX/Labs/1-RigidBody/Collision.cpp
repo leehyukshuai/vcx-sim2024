@@ -34,6 +34,9 @@ namespace VCX::Labs::RigidBody {
         // frictionless collision model
         // c represents coefficient of restitution
         static const float c = 0.6f;
+        std::vector<glm::vec3> totalVelocityChange(items.size());
+        std::vector<glm::vec3> totalOmegaChange(items.size());
+        std::vector<int> multiCollisionCount(items.size());
         for (auto const & contact : contacts) {
             auto  a    = items[contact.id1];
             auto  b    = items[contact.id2];
@@ -58,10 +61,18 @@ namespace VCX::Labs::RigidBody {
                 // Empirical collision model based on c (coefficient of restitution)
                 auto J = ((-(1.0f + c) * vrel) / (1.0f / ma + 1.0f / mb + glm::dot(n, (Iainv * glm::cross(glm::cross(pa, n), pa) + Ibinv * glm::cross(glm::cross(pb, n), pb))))) * n;
                 // apply impulse J
-                a->velocity += J / ma;
-                b->velocity += -J / mb;
-                a->omega += Iainv * glm::cross(pai, J);
-                b->omega += Ibinv * glm::cross(pbi, -J);
+                multiCollisionCount[contact.id1] ++;
+                multiCollisionCount[contact.id2] ++;
+                totalVelocityChange[contact.id1] += J / ma;
+                totalVelocityChange[contact.id2] -= J / mb;
+                totalOmegaChange[contact.id1] += Iainv * glm::cross(pai, J);
+                totalOmegaChange[contact.id2] += Ibinv * glm::cross(pbi, -J);
+            }
+        }
+        for (int i = 0; i < items.size(); ++i) {
+            if (multiCollisionCount[i]) {
+                items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
+                items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
             }
         }
         contacts.clear();
