@@ -29,12 +29,7 @@ namespace VCX::Labs::RigidBody {
                                         Engine::GL::SharedShader("assets/shaders/flat.frag") })),
         _coordProgram(Engine::GL::UniqueProgram({ Engine::GL::SharedShader("assets/shaders/coord.vert"),
                                                   Engine::GL::SharedShader("assets/shaders/coord.frag") })),
-        _coordItem(Engine::GL::VertexLayout()
-            .Add<glm::vec3>("position", Engine::GL::DrawFrequency::Static, 0)
-            .Add<glm::vec3>("color", Engine::GL::DrawFrequency::Static, 1)
-            , Engine::GL::PrimitiveType::Lines)
-        {
-
+        _coordItem(Engine::GL::VertexLayout().Add<glm::vec3>("position", Engine::GL::DrawFrequency::Static, 0).Add<glm::vec3>("color", Engine::GL::DrawFrequency::Static, 1), Engine::GL::PrimitiveType::Lines) {
         _collisionSystem.items.push_back(&_boxA.box);
         _collisionSystem.items.push_back(&_boxB.box);
 
@@ -49,20 +44,20 @@ namespace VCX::Labs::RigidBody {
 
     void CaseCollision::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::Button(!_paused ? "pause" : "start")) {
-                _paused = !_paused;
+            if (ImGui::Button(! _paused ? "pause" : "start")) {
+                _paused = ! _paused;
             }
             ImGui::SameLine();
             if (ImGui::Button("reset")) {
                 _paused = true;
-                _reset = true;
+                _reset  = true;
             }
             int typeIndex = static_cast<int>(_type);
             ImGui::Combo("Collision Type", &typeIndex, "edge-edge\0point-face\0face-face\0");
             if (typeIndex != static_cast<int>(_type)) {
-                _type  = static_cast<CollisionType>(typeIndex);
+                _type   = static_cast<CollisionType>(typeIndex);
                 _paused = true;
-                _reset = true;
+                _reset  = true;
             }
         }
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -97,25 +92,22 @@ namespace VCX::Labs::RigidBody {
             ResetScene(_type);
         }
 
-        if (!_paused) {
+        if (! _paused) {
             // damping
             _boxA.box.applyRotateDamping(_rotationalDamping);
             _boxA.box.applyTranslDamping(_translationalDamping);
             _boxB.box.applyRotateDamping(_rotationalDamping);
             _boxB.box.applyTranslDamping(_translationalDamping);
             // update
-            _boxA.update(0.01f);
-            _boxB.update(0.01f);
-            // _boxA.update(Engine::GetDeltaTime());
-            // _boxB.update(Engine::GetDeltaTime());
+            _boxA.update(Engine::GetDeltaTime());
+            _boxB.update(Engine::GetDeltaTime());
             // collision detect & handle
-            static bool debugFlag = true;
-            if (debugFlag) {
-                _collisionSystem.collisionDetect();
-                _collisionSystem.collisionHandle();
-            }
+            _collisionSystem.collisionDetect();
+            _collisionSystem.collisionHandle();
+        } else {
+            _boxA.update(0.f);
+            _boxB.update(0.f);
         }
-
 
         // rendering
         _frame.Resize(desiredSize);
@@ -161,22 +153,6 @@ namespace VCX::Labs::RigidBody {
     }
 
     void CaseCollision::ResetScene(CollisionType type) {
-        auto pi = glm::pi<float>();
-        auto deg2rad = [pi](float deg){return deg * pi / 180.0f;};
-        switch (type) {
-        case EDGE_EDGE:
-            _boxA.box.orientation = glm::quat(glm::vec3(0, deg2rad(-20), deg2rad(20)));
-            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(90), deg2rad(20), 0));
-            break;
-        case FACE_FACE:
-            _boxA.box.orientation = glm::quat(glm::vec3(deg2rad(30), 0, 0));
-            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(-30), 0, 0));
-            break;
-        case POINT_FACE:
-            _boxA.box.orientation = glm::quat(glm::vec3(deg2rad(-150), deg2rad(-12), deg2rad(-100)));
-            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(-30), 0, 0));
-            break;
-        }
         _boxA.box.omega     = glm::vec3(0, 0, 0);
         _boxB.box.omega     = glm::vec3(0, 0, 0);
         _boxA.box.position  = glm::vec3(-2, -0.2, 0);
@@ -189,6 +165,24 @@ namespace VCX::Labs::RigidBody {
         _boxB.box.setInertia();
         _boxA.box.setMass();
         _boxB.box.setMass();
+        auto pi      = glm::pi<float>();
+        auto deg2rad = [pi](float deg) { return deg * pi / 180.0f; };
+        switch (type) {
+        case EDGE_EDGE:
+            _boxA.box.orientation = glm::quat(glm::vec3(0, deg2rad(-20), deg2rad(20)));
+            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(90), deg2rad(20), 0));
+            break;
+        case FACE_FACE:
+            _boxA.box.orientation = glm::quat(glm::vec3(0, 0, 0));
+            _boxB.box.orientation = glm::quat(glm::vec3(0, 0, 0));
+            _boxA.box.position    = glm::vec3(-2, 0, 0);
+            _boxB.box.position    = glm::vec3(2, 0, 0);
+            break;
+        case POINT_FACE:
+            _boxA.box.orientation = glm::quat(glm::vec3(deg2rad(-150), deg2rad(-12), deg2rad(-100)));
+            _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(-30), 0, 0));
+            break;
+        }
     }
 
 } // namespace VCX::Labs::RigidBody
