@@ -33,11 +33,14 @@ namespace VCX::Labs::RigidBody {
     }
     void BoxCollisionSystem::collisionHandle() {
         // frictionless collision model
-        // c represents coefficient of restitution
-        static const float     c = 0.6f;
-        std::vector<glm::vec3> totalVelocityChange(items.size());
-        std::vector<glm::vec3> totalOmegaChange(items.size());
-        std::vector<int>       multiCollisionCount(items.size());
+        std::vector<glm::vec3> totalVelocityChange;
+        std::vector<glm::vec3> totalOmegaChange;
+        std::vector<int>       multiCollisionCount;
+        if (collisionMethod == METHOD_AVERAGE) {
+            totalVelocityChange.resize(items.size());
+            totalOmegaChange.resize(items.size());
+            multiCollisionCount.resize(items.size());
+        }
         for (auto const & contact : contacts) {
             auto  a    = items[contact.id1];
             auto  b    = items[contact.id2];
@@ -60,34 +63,39 @@ namespace VCX::Labs::RigidBody {
                 // Empirical collision model based on c (coefficient of restitution)
                 auto J = ((-(1.0f + c) * vrel) / (1.0f * mai + 1.0f * mbi + glm::dot(n, (Iainv * glm::cross(glm::cross(pai, n), pai) + Ibinv * glm::cross(glm::cross(pbi, n), pbi))))) * n;
                 // apply impulse J
-                // multiCollisionCount[contact.id1]++;
-                // multiCollisionCount[contact.id2]++;
-                // totalVelocityChange[contact.id1] += J * mai;
-                // totalVelocityChange[contact.id2] -= J * mbi;
-                // totalOmegaChange[contact.id1] += Iainv * glm::cross(pai, J);
-                // totalOmegaChange[contact.id2] += Ibinv * glm::cross(pbi, -J);
-                a->velocity += J * mai;
-                b->velocity -= J * mbi;
-                a->omega += Iainv * glm::cross(pai, J);
-                b->omega += Ibinv * glm::cross(pbi, -J);
+                if (collisionMethod == METHOD_NAIVE) {
+                    a->velocity += J * mai;
+                    b->velocity -= J * mbi;
+                    a->omega += Iainv * glm::cross(pai, J);
+                    b->omega += Ibinv * glm::cross(pbi, -J);
+                } else if (collisionMethod == METHOD_AVERAGE) {
+                    multiCollisionCount[contact.id1]++;
+                    multiCollisionCount[contact.id2]++;
+                    totalVelocityChange[contact.id1] += J * mai;
+                    totalVelocityChange[contact.id2] -= J * mbi;
+                    totalOmegaChange[contact.id1] += Iainv * glm::cross(pai, J);
+                    totalOmegaChange[contact.id2] += Ibinv * glm::cross(pbi, -J);
+                }
             } else {
                 // or just contact, we move them apart
                 if (a->isStatic && b->isStatic) continue;
-                bool anyStatic = (a->isStatic || b->isStatic);
-                float ma = a->mass;
-                float mb = b->mass;
-                float partb = anyStatic ? (a->isStatic ? 1 : 0) : ma / (ma+mb);
-                float parta = anyStatic ? (a->isStatic ? 0 : 1) : mb / (ma+mb);
+                bool  anyStatic = (a->isStatic || b->isStatic);
+                float ma        = a->mass;
+                float mb        = b->mass;
+                float partb     = anyStatic ? (a->isStatic ? 1 : 0) : ma / (ma + mb);
+                float parta     = anyStatic ? (a->isStatic ? 0 : 1) : mb / (ma + mb);
                 a->position += contact.normal * contact.depth * parta;
                 b->position -= contact.normal * contact.depth * partb;
             }
         }
-        // for (int i = 0; i < items.size(); ++i) {
-        //     if (multiCollisionCount[i]) {
-        //         items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
-        //         items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
-        //     }
-        // }
+        if (collisionMethod == METHOD_AVERAGE) {
+            for (int i = 0; i < items.size(); ++i) {
+                if (multiCollisionCount[i]) {
+                    items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
+                    items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
+                }
+            }
+        }
         contacts.clear();
     }
 

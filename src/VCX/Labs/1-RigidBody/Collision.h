@@ -15,8 +15,12 @@ namespace VCX::Labs::RigidBody {
         std::vector<Contact> contacts;
 
     public:
-        std::vector<Box *> items;
-        void               collisionDetect();
-        void               collisionHandle();
+        enum CollisionHandleMethod { METHOD_NAIVE,
+                                     METHOD_AVERAGE };
+        std::vector<Box *>    items;
+        float                 c               = 0.6f; // coefficient of restitution
+        CollisionHandleMethod collisionMethod = METHOD_NAIVE;
+        void                  collisionDetect();
+        void                  collisionHandle();
     };
 } // namespace VCX::Labs::RigidBody

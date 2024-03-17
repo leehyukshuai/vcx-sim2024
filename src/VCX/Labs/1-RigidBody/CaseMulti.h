@@ -29,7 +29,7 @@ namespace VCX::Labs::RigidBody {
         bool      _paused { true };
         float     _translationalDamping = 0.1f;
         float     _rotationalDamping    = 0.1f;
-        glm::vec3 _gravity              = glm::vec3(0, -1, 0);
+        glm::vec3 _gravity              = glm::vec3(0, 1, 0);
 
         Engine::GL::UniqueRenderFrame _frame;
         Engine::GL::UniqueProgram     _program;

@@ -39,6 +39,8 @@ namespace VCX::Labs::RigidBody {
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
 
+        _collisionSystem.collisionMethod = BoxCollisionSystem::METHOD_AVERAGE;
+
         ResetScene(EDGE_EDGE);
     }
 
@@ -79,6 +81,7 @@ namespace VCX::Labs::RigidBody {
         if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
+            ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
         }
     }
 
@@ -161,6 +164,8 @@ namespace VCX::Labs::RigidBody {
         _boxB.box.velocity  = glm::vec3(-1, 0, 0);
         _boxA.box.dimension = glm::vec3(1, 2, 3);
         _boxB.box.dimension = glm::vec3(1, 2, 3);
+        _boxA.box.orientation = glm::quat(glm::vec3(0, 0, 0));
+        _boxB.box.orientation = glm::quat(glm::vec3(0, 0, 0));
         _boxA.box.setMass();
         _boxB.box.setMass();
         _boxA.box.setInertia();
@@ -173,18 +178,9 @@ namespace VCX::Labs::RigidBody {
             _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(90), deg2rad(20), 0));
             break;
         case FACE_FACE:
-            _boxB.box.dimension   = glm::vec3(0.6, 10, 10);
-            _boxB.box.setMass();
-            _boxB.box.setInertia();
-            _boxA.box.dimension   = glm::vec3(1, 1, 1);
-            _boxA.box.setMass();
-            _boxA.box.setInertia();
-            _boxB.box.isStatic    = true;
-            _boxA.box.orientation = glm::quat(glm::vec3(0, 0, 0));
-            _boxB.box.orientation = glm::quat(glm::vec3(0, 0, 0));
-            _boxA.box.position    = glm::vec3(0, 0, 0);
+            _boxA.box.position    = glm::vec3(-1, 0, 0);
             _boxA.box.velocity = glm::vec3(0.6, 0, 0);
-            _boxB.box.position    = glm::vec3(2, 0, 0);
+            _boxB.box.position    = glm::vec3(1, 0, 0);
             break;
         case POINT_FACE:
             _boxA.box.orientation = glm::quat(glm::vec3(deg2rad(-150), deg2rad(-12), deg2rad(-100)));
