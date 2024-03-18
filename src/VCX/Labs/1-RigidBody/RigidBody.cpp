@@ -19,7 +19,6 @@ namespace VCX::Labs::RigidBody {
             totalForce += force;
         }
         velocity += totalForce / mass * delta;
-        position += velocity * delta;
         // rotational state
         auto rotationMatrix = glm::toMat3(orientation);
         for (auto forcePair : forceList) {
@@ -30,10 +29,13 @@ namespace VCX::Labs::RigidBody {
         }
         auto rotatedInertia = rotationMatrix * inertia * glm::transpose(rotationMatrix);
         omega += delta * glm::inverse(rotatedInertia) * totalTorque;
-        orientation += ((delta / 2) * glm::quat(0, omega[0], omega[1], omega[2])) * orientation;
-        orientation = glm::normalize(orientation);
         // clear forces
         resetForces();
+    }
+    void RigidBody::move(float delta) {
+        position += velocity * delta;
+        orientation += ((delta / 2) * glm::quat(0, omega[0], omega[1], omega[2])) * orientation;
+        orientation = glm::normalize(orientation);
     }
     void RigidBody::resetForces() {
         forceList.clear();
@@ -48,13 +50,15 @@ namespace VCX::Labs::RigidBody {
         mass = 1.0f;
     }
     void RigidBody::applyTranslDamping(float translDampingFactor) {
-        if (velocity != glm::vec3(0, 0, 0)) {
-            apply(-translDampingFactor * glm::length2(velocity) * glm::normalize(velocity));
+        auto normalized = glm::normalize(velocity);
+        if (normalized.x == normalized.x && normalized.y == normalized.y && normalized.z == normalized.z) {
+            apply(-translDampingFactor * glm::length2(velocity) * normalized);
         }
     }
     void RigidBody::applyRotateDamping(float rotateDampingFactor) {
-        if (omega != glm::vec3(0, 0, 0)) {
-            applyTorque(-rotateDampingFactor * glm::length2(omega) * glm::normalize(omega));
+        auto normalized = glm::normalize(omega);
+        if (normalized.x == normalized.x && normalized.y == normalized.y && normalized.z == normalized.z) {
+            applyTorque(-rotateDampingFactor * glm::length2(omega) * normalized);
         }
     }
     void Box::setInertia() {
@@ -73,8 +77,7 @@ namespace VCX::Labs::RigidBody {
         faceItem.UpdateElementBuffer(tri_index);
         lineItem.UpdateElementBuffer(line_index);
     }
-    void BoxRenderItem::update(float delta) {
-        box.update(delta);
+    void BoxRenderItem::updateBuffer() {
         float x             = box.dimension[0] / 2.0;
         float y             = box.dimension[1] / 2.0;
         float z             = box.dimension[2] / 2.0;

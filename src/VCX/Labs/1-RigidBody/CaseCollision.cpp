@@ -102,15 +102,17 @@ namespace VCX::Labs::RigidBody {
             _boxB.box.applyRotateDamping(_rotationalDamping);
             _boxB.box.applyTranslDamping(_translationalDamping);
             // update
-            _boxA.update(Engine::GetDeltaTime());
-            _boxB.update(Engine::GetDeltaTime());
+            _boxA.box.update(Engine::GetDeltaTime());
+            _boxB.box.update(Engine::GetDeltaTime());
             // collision detect & handle
             _collisionSystem.collisionDetect();
             _collisionSystem.collisionHandle();
-        } else {
-            _boxA.update(0.f);
-            _boxB.update(0.f);
+            // update
+            _boxA.box.move(Engine::GetDeltaTime());
+            _boxB.box.move(Engine::GetDeltaTime());
         }
+        _boxA.updateBuffer();
+        _boxB.updateBuffer();
 
         // rendering
         _frame.Resize(desiredSize);
@@ -158,8 +160,8 @@ namespace VCX::Labs::RigidBody {
     void CaseCollision::ResetScene(CollisionType type) {
         _boxA.box.omega     = glm::vec3(0, 0, 0);
         _boxB.box.omega     = glm::vec3(0, 0, 0);
-        _boxA.box.position  = glm::vec3(-2, -0.2, 0);
-        _boxB.box.position  = glm::vec3(2, 0.2, 0);
+        _boxA.box.position  = glm::vec3(-2, 0, 0);
+        _boxB.box.position  = glm::vec3(2, 0, 0);
         _boxA.box.velocity  = glm::vec3(1, 0, 0);
         _boxB.box.velocity  = glm::vec3(-1, 0, 0);
         _boxA.box.dimension = glm::vec3(1, 2, 3);
@@ -178,9 +180,11 @@ namespace VCX::Labs::RigidBody {
             _boxB.box.orientation = glm::quat(glm::vec3(deg2rad(90), deg2rad(20), 0));
             break;
         case FACE_FACE:
-            _boxA.box.position    = glm::vec3(-1, 0, 0);
-            _boxA.box.velocity = glm::vec3(0.6, 0, 0);
-            _boxB.box.position    = glm::vec3(1, 0, 0);
+            _boxB.box.dimension = glm::vec3(1, 4, 2);
+            _boxB.box.position = glm::vec3(0, 2.5f, 0);
+            _boxB.box.velocity = glm::vec3(0,0,0);
+            _boxB.box.setMass();
+            _boxB.box.setInertia();
             break;
         case POINT_FACE:
             _boxA.box.orientation = glm::quat(glm::vec3(deg2rad(-150), deg2rad(-12), deg2rad(-100)));

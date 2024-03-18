@@ -3,7 +3,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include "Engine/GL/RenderItem.h"
-#include <Eigen/Eigen>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -29,7 +28,10 @@ namespace VCX::Labs::RigidBody {
         virtual void applyRotateDamping(float rotateDampingFactor);
         void         apply(glm::vec3 force, glm::vec3 point = glm::vec3(0, 0, 0));
         void         applyTorque(glm::vec3 torque);
+        // update velocity and omega
         void         update(float delta);
+        // update position and orientation
+        void         move(float delta);
         void         resetForces();
     };
 
@@ -47,7 +49,8 @@ namespace VCX::Labs::RigidBody {
         Engine::GL::UniqueIndexedRenderItem lineItem;
         Engine::GL::UniqueIndexedRenderItem faceItem;
         BoxRenderItem();
-        void update(float delta);
+        // reset the vertex buffer info
+        void updateBuffer();
     };
 
 } // namespace VCX::Labs::RigidBody

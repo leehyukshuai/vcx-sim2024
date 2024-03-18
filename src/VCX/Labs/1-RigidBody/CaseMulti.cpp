@@ -38,6 +38,8 @@ namespace VCX::Labs::RigidBody {
         _coordItem.UpdateVertexBuffer("position", Engine::make_span_bytes<glm::vec3>(c_PositionData));
         _coordItem.UpdateVertexBuffer("color", Engine::make_span_bytes<glm::vec3>(c_ColorData));
 
+        _collisionSystem.collisionMethod = BoxCollisionSystem::METHOD_AVERAGE;
+
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
     }
@@ -88,22 +90,26 @@ namespace VCX::Labs::RigidBody {
         }
 
         if (! _paused) {
-            for (auto & box : _boxes) {
+            for (auto & boxItem : _boxes) {
                 // damping
-                box.box.applyRotateDamping(_rotationalDamping);
-                box.box.applyTranslDamping(_translationalDamping);
+                boxItem.box.applyRotateDamping(_rotationalDamping);
+                boxItem.box.applyTranslDamping(_translationalDamping);
                 // gravity
-                box.box.apply(-_gravity * box.box.mass);
+                boxItem.box.apply(-_gravity * boxItem.box.mass);
                 // update
-                box.update(Engine::GetDeltaTime());
+                boxItem.box.update(Engine::GetDeltaTime());
             }
             // collision detect & handle
             _collisionSystem.collisionDetect();
             _collisionSystem.collisionHandle();
-        } else {
-            for (auto & box : _boxes) {
-                box.update(0.f);
+            for (auto & boxItem : _boxes) {
+                // update
+                boxItem.box.move(Engine::GetDeltaTime());
             }
+        }
+        for (auto & boxItem : _boxes) {
+            // update
+            boxItem.updateBuffer();
         }
 
         // rendering
