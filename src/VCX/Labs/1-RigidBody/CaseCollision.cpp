@@ -62,7 +62,7 @@ namespace VCX::Labs::RigidBody {
                 _reset  = true;
             }
         }
-        if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Camera")) {
             if (ImGui::Button("z-view")) {
                 _cameraManager.Save(Engine::Camera({ .Eye = glm::vec3(0, 0, 10) }));
                 _cameraManager.Reset(_camera);
@@ -78,7 +78,7 @@ namespace VCX::Labs::RigidBody {
                 _cameraManager.Reset(_camera);
             }
         }
-        if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Physics")) {
             ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");

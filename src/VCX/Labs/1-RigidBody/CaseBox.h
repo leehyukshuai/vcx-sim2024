@@ -22,21 +22,20 @@ namespace VCX::Labs::RigidBody {
         void OnProcessMouseControl(glm::vec3 mourseDelta);
         void OnProcessKeyControl();
 
-    private:
-        bool                                _paused { false };
-        float                               _translationalDamping = 0.1f;
-        float                               _rotationalDamping = 0.1f;
+        void ResetScene();
 
-        Engine::GL::UniqueProgram           _coordProgram;
-        Engine::GL::UniqueProgram           _program;
-        Engine::GL::UniqueRenderFrame       _frame;
-        Engine::Camera                      _camera { .Eye = glm::vec3(5, 5, 5) };
-        Common::OrbitCameraManager          _cameraManager;
-        Engine::GL::UniqueRenderItem        _coordItem;  // render the coordinates
-        Engine::GL::UniqueIndexedRenderItem _boxItem;  // render the box
-        Engine::GL::UniqueIndexedRenderItem _lineItem; // render line on box
-        glm::vec3                           _dim { 1.f, 2.f, 3.f };
-        glm::vec3                           _boxColor { 255.0f / 255, 150.0f / 255, 200.0f / 255 };
-        RigidBody                           _rigidBody;
+    private:
+        bool  _paused { false };
+        bool  _reset { false };
+        float _translationalDamping = 0.1f;
+        float _rotationalDamping    = 0.1f;
+
+        Engine::GL::UniqueProgram     _coordProgram;
+        Engine::GL::UniqueProgram     _program;
+        Engine::GL::UniqueRenderFrame _frame;
+        Engine::Camera                _camera { .Eye = glm::vec3(5, 5, 5) };
+        Common::OrbitCameraManager    _cameraManager;
+        Engine::GL::UniqueRenderItem  _coordItem; // render the coordinates
+        BoxRenderItem                 _box;
     };
 } // namespace VCX::Labs::RigidBody
