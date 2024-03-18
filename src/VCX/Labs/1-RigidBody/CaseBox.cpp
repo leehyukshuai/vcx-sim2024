@@ -104,9 +104,9 @@ namespace VCX::Labs::RigidBody {
         }
 
         // damping
-        _box.box.applyTranslDamping(_translationalDamping);
-        _box.box.applyRotateDamping(_rotationalDamping);
         if (! _paused) {
+            _box.box.applyTranslDamping(_translationalDamping);
+            _box.box.applyRotateDamping(_rotationalDamping);
             _box.box.update(Engine::GetDeltaTime());
             _box.box.move(Engine::GetDeltaTime());
         }
