@@ -35,7 +35,7 @@ namespace VCX::Labs::RigidBody {
         Engine::GL::UniqueProgram     _program;
         Engine::GL::UniqueProgram     _coordProgram;
         Engine::GL::UniqueRenderItem  _coordItem; // render the coordinates
-        Engine::Camera                _camera { .Eye = glm::vec3(5, 5, 5) };
+        Engine::Camera                _camera { .Eye = glm::vec3(8, 8, 8) };
         Common::OrbitCameraManager    _cameraManager;
         std::vector<BoxRenderItem>    _boxes;
         BoxCollisionSystem            _collisionSystem;

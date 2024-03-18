@@ -92,8 +92,8 @@ namespace VCX::Labs::RigidBody {
             for (int i = 0; i < items.size(); ++i) {
                 if (multiCollisionCount[i]) {
                     // why not divided by (float) multiCollisionCount[i]?
-                    items[i]->velocity += totalVelocityChange[i] ;
-                    items[i]->omega += totalOmegaChange[i];
+                    items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
+                    items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
                 }
             }
         }

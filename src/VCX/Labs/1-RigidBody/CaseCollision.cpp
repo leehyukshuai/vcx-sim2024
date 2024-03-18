@@ -78,9 +78,9 @@ namespace VCX::Labs::RigidBody {
                 _cameraManager.Reset(_camera);
             }
         }
-        if (ImGui::CollapsingHeader("Physics")) {
-            ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
-            ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
+        if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) {
+            // ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
+            // ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
         }
     }
@@ -126,10 +126,13 @@ namespace VCX::Labs::RigidBody {
         gl_using(_frame);
         glEnable(GL_LINE_SMOOTH);
 
+
+        glEnable(GL_DEPTH_TEST);
         _program.GetUniforms().SetByName("u_Color", _boxA.color);
         _boxA.faceItem.Draw({ _program.Use() });
         _program.GetUniforms().SetByName("u_Color", _boxB.color);
         _boxB.faceItem.Draw({ _program.Use() });
+        glDisable(GL_DEPTH_TEST);
 
         _program.GetUniforms().SetByName("u_Color", glm::vec3(1.f, 1.f, 1.f));
         _boxA.lineItem.Draw({ _program.Use() });
@@ -158,6 +161,9 @@ namespace VCX::Labs::RigidBody {
     }
 
     void CaseCollision::ResetScene(CollisionType type) {
+        _boxA.color = glm::vec3(0.9, 0.5, 0.5);
+        _boxB.color = glm::vec3(0.5, 0.5, 0.9);
+
         _boxA.box.omega     = glm::vec3(0, 0, 0);
         _boxB.box.omega     = glm::vec3(0, 0, 0);
         _boxA.box.position  = glm::vec3(-2, 0, 0);
