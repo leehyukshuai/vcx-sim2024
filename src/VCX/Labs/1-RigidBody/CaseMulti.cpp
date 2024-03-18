@@ -31,20 +31,20 @@ namespace VCX::Labs::RigidBody {
                                                   Engine::GL::SharedShader("assets/shaders/coord.frag") })),
         _coordItem(Engine::GL::VertexLayout().Add<glm::vec3>("position", Engine::GL::DrawFrequency::Static, 0).Add<glm::vec3>("color", Engine::GL::DrawFrequency::Static, 1), Engine::GL::PrimitiveType::Lines) {
         ResetScene();
-        for (auto & box : _boxes) {
-            _collisionSystem.items.push_back(&box.box);
-        }
 
         _coordItem.UpdateVertexBuffer("position", Engine::make_span_bytes<glm::vec3>(c_PositionData));
         _coordItem.UpdateVertexBuffer("color", Engine::make_span_bytes<glm::vec3>(c_ColorData));
 
-        _collisionSystem.collisionMethod = BoxCollisionSystem::METHOD_AVERAGE;
+        _collisionSystem.collisionMethod = BoxCollisionSystem::METHOD_NAIVE;
 
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
     }
 
     void CaseMulti::OnSetupPropsUI() {
+        if (ImGui::CollapsingHeader("Help", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::TextWrapped("Apply forces: Alt+MouseMove");
+        }
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::Button(! _paused ? "pause" : "start")) {
                 _paused = ! _paused;
@@ -55,7 +55,7 @@ namespace VCX::Labs::RigidBody {
                 _reset  = true;
             }
         }
-        if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Camera")) {
             if (ImGui::Button("z-view")) {
                 _cameraManager.Save(Engine::Camera({ .Eye = glm::vec3(0, 0, 10) }));
                 _cameraManager.Reset(_camera);
@@ -71,7 +71,7 @@ namespace VCX::Labs::RigidBody {
                 _cameraManager.Reset(_camera);
             }
         }
-        if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Physics"), ImGuiTreeNodeFlags_DefaultOpen) {
             ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
@@ -152,16 +152,23 @@ namespace VCX::Labs::RigidBody {
     }
 
     void CaseMulti::OnProcessMouseControl(glm::vec3 mouseDelta) {
+        float movingScale = 0.3f;
+        for (auto &boxItem : _boxes) {
+            boxItem.box.apply(movingScale * mouseDelta);
+            boxItem.box.applyTorque(movingScale * mouseDelta);
+        }
     }
 
     void CaseMulti::OnProcessKeyControl() {
     }
 
     void CaseMulti::ResetScene() {
-        _boxes.resize(17);
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                auto & boxItem = _boxes[i * 4 + j];
+        _boxes.clear();
+
+        for (int i = 0; i < 6; ++i) {
+            for (int j = 0; j < 6; ++j) {
+                _boxes.resize(_boxes.size()+1);
+                auto & boxItem = _boxes.back();
                 auto & box     = boxItem.box;
 
                 boxItem.color = glm::vec3(i * 0.2, j * 0.2, 1.0);
@@ -172,22 +179,59 @@ namespace VCX::Labs::RigidBody {
                 box.omega       = glm::vec3(0, 0, 0);
                 box.velocity    = glm::vec3(0, -1, 0);
                 box.orientation = glm::quat(glm::vec3(0, 0, 0));
+                box.position = glm::vec3((i - 2.5f) * 4.f, 5, (j - 2.5f) * 4.f);
 
-                box.position = glm::vec3((i - 1.5f) * 1.1f, (6 - i + j) * 1.1f, (j - 1.5f) * 1.1f);
+                if (abs(i-2.5f) >= 1.5f && abs(j-2.5f) >= 1.5f || abs(i-2.5f) <= 0.5f && abs(j-2.5f) <= 0.5f) {
+                    _boxes.erase(_boxes.end()-1);
+                    continue;
+                }
             }
         }
-        auto &boxItem = _boxes.back();
-        boxItem.color = glm::vec3(1.0, 0.6, 0.2);
-        auto &box = boxItem.box;
-        box.isStatic = true;
-        box.dimension = glm::vec3(10, 0.6f, 10);
-        box.setMass();
-        box.setInertia();
-        box.omega       = glm::vec3(0, 0, 0);
-        box.velocity    = glm::vec3(0, 0, 0);
-        box.orientation = glm::quat(glm::vec3(0, 0, 0));
 
-        box.position = glm::vec3(0,-1,0);
+        _boxes.resize(_boxes.size()+1);
+        auto &wall1 = _boxes.back();
+        wall1.color = glm::vec3(1.0, 0.6, 0.3);
+        wall1.box.isStatic = true;
+        wall1.box.dimension = glm::vec3(10, 0.6f, 10);
+        wall1.box.orientation = glm::quat(glm::vec3(0, 0, -0.6));
+        wall1.box.position = glm::vec3(-9.5,3,0);
+
+        _boxes.resize(_boxes.size()+1);
+        auto &wall2 = _boxes.back();
+        wall2.color = glm::vec3(1.0, 0.6, 0.3);
+        wall2.box.isStatic = true;
+        wall2.box.dimension = glm::vec3(10, 0.6f, 10);
+        wall2.box.orientation = glm::quat(glm::vec3(0, 0, 0.6));
+        wall2.box.position = glm::vec3(9.5,3,0);
+        
+        _boxes.resize(_boxes.size()+1);
+        auto &wall3 = _boxes.back();
+        wall3.color = glm::vec3(1.0, 0.6, 0.3);
+        wall3.box.isStatic = true;
+        wall3.box.dimension = glm::vec3(10, 0.6f, 10);
+        wall3.box.orientation = glm::quat(glm::vec3(-0.6, 0, 0));
+        wall3.box.position = glm::vec3(0,3,9.5);
+
+        _boxes.resize(_boxes.size()+1);
+        auto &wall4 = _boxes.back();
+        wall4.color = glm::vec3(1.0, 0.6, 0.3);
+        wall4.box.isStatic = true;
+        wall4.box.dimension = glm::vec3(10, 0.6f, 10);
+        wall4.box.orientation = glm::quat(glm::vec3(0.6, 0, 0));
+        wall4.box.position = glm::vec3(0,3,-9.5);
+
+        _boxes.resize(_boxes.size()+1);
+        auto &ground = _boxes.back();
+        ground.color = glm::vec3(1.0, 0.6, 0.2);
+        ground.box.isStatic = true;
+        ground.box.dimension = glm::vec3(10, 0.6f, 10);
+        ground.box.orientation = glm::quat(glm::vec3(0, 0, 0));
+        ground.box.position = glm::vec3(0,-1,0);
+
+        _collisionSystem.items.clear();
+        for (auto & box : _boxes) {
+            _collisionSystem.items.push_back(&box.box);
+        }
     }
 
 } // namespace VCX::Labs::RigidBody

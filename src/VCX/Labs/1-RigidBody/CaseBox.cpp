@@ -30,7 +30,6 @@ namespace VCX::Labs::RigidBody {
         _coordProgram(Engine::GL::UniqueProgram({ Engine::GL::SharedShader("assets/shaders/coord.vert"),
                                                   Engine::GL::SharedShader("assets/shaders/coord.frag") })),
         _coordItem(Engine::GL::VertexLayout().Add<glm::vec3>("position", Engine::GL::DrawFrequency::Static, 0).Add<glm::vec3>("color", Engine::GL::DrawFrequency::Static, 1), Engine::GL::PrimitiveType::Lines) {
-
         ResetScene();
 
         _coordItem.UpdateVertexBuffer("position", Engine::make_span_bytes<glm::vec3>(c_PositionData));
@@ -42,8 +41,8 @@ namespace VCX::Labs::RigidBody {
 
     void CaseBox::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Help", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::TextWrapped("I:-z K:+z J:-x L:+x U:+y O:-y");
-            ImGui::TextWrapped("Alt+MouseMove:rotation");
+            ImGui::TextWrapped("Movement: I:-z K:+z J:-x L:+x U:+y O:-y");
+            ImGui::TextWrapped("Rotation: Alt+MouseMove");
         }
         if (ImGui::CollapsingHeader("Config")) {
             if (ImGui::Button(! _paused ? "pause" : "start")) {
@@ -80,6 +79,9 @@ namespace VCX::Labs::RigidBody {
             eulerAngles *= glm::pi<float>() / 180.0f;
             _box.box.orientation = glm::quat(eulerAngles);
             ImGui::InputFloat3("omega", glm::value_ptr(_box.box.omega), "%.1f");
+        }
+        if (ImGui::CollapsingHeader("Appearance")) {
+            ImGui::ColorEdit3("Box Color", glm::value_ptr(_box.color));
             bool flag = false;
             flag |= ImGui::SliderFloat("dim-x", &_box.box.dimension.x, 0.5, 4);
             flag |= ImGui::SliderFloat("dim-y", &_box.box.dimension.y, 0.5, 4);
@@ -88,9 +90,6 @@ namespace VCX::Labs::RigidBody {
                 _box.box.setMass();
                 _box.box.setInertia();
             }
-        }
-        if (ImGui::CollapsingHeader("Appearance")) {
-            ImGui::ColorEdit3("Box Color", glm::value_ptr(_box.color));
         }
     }
 
@@ -150,22 +149,22 @@ namespace VCX::Labs::RigidBody {
 
     void CaseBox::OnProcessKeyControl() {
         if (ImGui::IsKeyDown(ImGuiKey_J)) {
-            _box.box.apply({-1, 0, 0});
+            _box.box.apply({ -1, 0, 0 });
         }
         if (ImGui::IsKeyDown(ImGuiKey_L)) {
-            _box.box.apply({1, 0, 0});
+            _box.box.apply({ 1, 0, 0 });
         }
         if (ImGui::IsKeyDown(ImGuiKey_I)) {
-            _box.box.apply({0, 0, -1});
+            _box.box.apply({ 0, 0, -1 });
         }
         if (ImGui::IsKeyDown(ImGuiKey_K)) {
-            _box.box.apply({0, 0, 1});
+            _box.box.apply({ 0, 0, 1 });
         }
         if (ImGui::IsKeyDown(ImGuiKey_U)) {
-            _box.box.apply({0, 1, 0});
+            _box.box.apply({ 0, 1, 0 });
         }
         if (ImGui::IsKeyDown(ImGuiKey_O)) {
-            _box.box.apply({0, -1, 0});
+            _box.box.apply({ 0, -1, 0 });
         }
     }
 
