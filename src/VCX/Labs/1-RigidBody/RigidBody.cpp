@@ -27,8 +27,9 @@ namespace VCX::Labs::RigidBody {
             glm::vec3 torque = glm::cross((rotationMatrix * point), force);
             totalTorque += torque;
         }
+        angulayMomentum += totalTorque * delta;
         auto rotatedInertia = rotationMatrix * inertia * glm::transpose(rotationMatrix);
-        omega += delta * glm::inverse(rotatedInertia) * totalTorque;
+        omega = glm::inverse(rotatedInertia) * angulayMomentum;
         // clear forces
         resetForces();
     }

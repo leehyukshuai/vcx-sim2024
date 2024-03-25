@@ -78,7 +78,9 @@ namespace VCX::Labs::RigidBody {
             ImGui::InputFloat3("orientation", glm::value_ptr(eulerAngles), "%.1f");
             eulerAngles *= glm::pi<float>() / 180.0f;
             _box.box.orientation = glm::quat(eulerAngles);
-            ImGui::InputFloat3("omega", glm::value_ptr(_box.box.omega), "%.1f");
+            if (ImGui::InputFloat3("omega", glm::value_ptr(_box.box.omega), "%.1f")) {
+                _box.box.angulayMomentum = _box.box.inertia * _box.box.omega;
+            }
         }
         if (ImGui::CollapsingHeader("Appearance")) {
             ImGui::ColorEdit3("Box Color", glm::value_ptr(_box.color));
