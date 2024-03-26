@@ -68,6 +68,8 @@ namespace VCX::Labs::RigidBody {
                     b->velocity -= J * mbi;
                     a->omega += Iainv * glm::cross(pai, J);
                     b->omega += Ibinv * glm::cross(pbi, -J);
+                    a->setAngularMomentumByOmega(a->omega);
+                    b->setAngularMomentumByOmega(b->omega);
                 } else if (collisionMethod == METHOD_AVERAGE) {
                     multiCollisionCount[contact.id1]++;
                     multiCollisionCount[contact.id2]++;
@@ -94,6 +96,7 @@ namespace VCX::Labs::RigidBody {
                     // why not divided by (float) multiCollisionCount[i]?
                     items[i]->velocity += totalVelocityChange[i] / (float) multiCollisionCount[i];
                     items[i]->omega += totalOmegaChange[i] / (float) multiCollisionCount[i];
+                    items[i]->setAngularMomentumByOmega(items[i]->omega);
                 }
             }
         }

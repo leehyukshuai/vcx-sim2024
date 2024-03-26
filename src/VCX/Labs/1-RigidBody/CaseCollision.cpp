@@ -126,7 +126,6 @@ namespace VCX::Labs::RigidBody {
         gl_using(_frame);
         glEnable(GL_LINE_SMOOTH);
 
-
         glEnable(GL_DEPTH_TEST);
         _program.GetUniforms().SetByName("u_Color", _boxA.color);
         _boxA.faceItem.Draw({ _program.Use() });
@@ -164,16 +163,18 @@ namespace VCX::Labs::RigidBody {
         _boxA.color = glm::vec3(0.9, 0.5, 0.5);
         _boxB.color = glm::vec3(0.5, 0.5, 0.9);
 
-        _boxA.box.omega     = glm::vec3(0, 0, 0);
-        _boxB.box.omega     = glm::vec3(0, 0, 0);
-        _boxA.box.position  = glm::vec3(-2, 0, 0);
-        _boxB.box.position  = glm::vec3(2, 0, 0);
-        _boxA.box.velocity  = glm::vec3(1, 0, 0);
-        _boxB.box.velocity  = glm::vec3(-1, 0, 0);
-        _boxA.box.dimension = glm::vec3(1, 2, 3);
-        _boxB.box.dimension = glm::vec3(1, 2, 3);
-        _boxA.box.orientation = glm::quat(glm::vec3(0, 0, 0));
-        _boxB.box.orientation = glm::quat(glm::vec3(0, 0, 0));
+        _boxA.box.omega           = glm::vec3(0, 0, 0);
+        _boxB.box.omega           = glm::vec3(0, 0, 0);
+        _boxA.box.angulayMomentum = glm::vec3(0, 0, 0);
+        _boxB.box.angulayMomentum = glm::vec3(0, 0, 0);
+        _boxA.box.position        = glm::vec3(-2, 0, 0);
+        _boxB.box.position        = glm::vec3(2, 0, 0);
+        _boxA.box.velocity        = glm::vec3(1, 0, 0);
+        _boxB.box.velocity        = glm::vec3(-1, 0, 0);
+        _boxA.box.dimension       = glm::vec3(1, 2, 3);
+        _boxB.box.dimension       = glm::vec3(1, 2, 3);
+        _boxA.box.orientation     = glm::quat(glm::vec3(0, 0, 0));
+        _boxB.box.orientation     = glm::quat(glm::vec3(0, 0, 0));
         _boxA.box.setMass();
         _boxB.box.setMass();
         _boxA.box.setInertia();
@@ -187,8 +188,8 @@ namespace VCX::Labs::RigidBody {
             break;
         case FACE_FACE:
             _boxB.box.dimension = glm::vec3(1, 4, 2);
-            _boxB.box.position = glm::vec3(0, 2.5f, 0);
-            _boxB.box.velocity = glm::vec3(0,0,0);
+            _boxB.box.position  = glm::vec3(0, 2.5f, 0);
+            _boxB.box.velocity  = glm::vec3(0, 0, 0);
             _boxB.box.setMass();
             _boxB.box.setInertia();
             break;

@@ -153,7 +153,7 @@ namespace VCX::Labs::RigidBody {
 
     void CaseMulti::OnProcessMouseControl(glm::vec3 mouseDelta) {
         float movingScale = 0.3f;
-        for (auto &boxItem : _boxes) {
+        for (auto & boxItem : _boxes) {
             boxItem.box.apply(movingScale * mouseDelta);
             boxItem.box.applyTorque(movingScale * mouseDelta);
         }
@@ -167,7 +167,7 @@ namespace VCX::Labs::RigidBody {
 
         for (int i = 0; i < 6; ++i) {
             for (int j = 0; j < 6; ++j) {
-                _boxes.resize(_boxes.size()+1);
+                _boxes.resize(_boxes.size() + 1);
                 auto & boxItem = _boxes.back();
                 auto & box     = boxItem.box;
 
@@ -176,57 +176,58 @@ namespace VCX::Labs::RigidBody {
                 box.dimension = glm::vec3(1, 1, 1);
                 box.setMass();
                 box.setInertia();
-                box.omega       = glm::vec3(0, 0, 0);
-                box.velocity    = glm::vec3(0, -1, 0);
-                box.orientation = glm::quat(glm::vec3(0, 0, 0));
-                box.position = glm::vec3((i - 2.5f) * 4.f, 5, (j - 2.5f) * 4.f);
+                box.omega           = glm::vec3(0, 0, 0);
+                box.angulayMomentum = glm::vec3(0, 0, 0);
+                box.velocity        = glm::vec3(0, -1, 0);
+                box.orientation     = glm::quat(glm::vec3(0, 0, 0));
+                box.position        = glm::vec3((i - 2.5f) * 4.f, 5, (j - 2.5f) * 4.f);
 
-                if (abs(i-2.5f) >= 1.5f && abs(j-2.5f) >= 1.5f || abs(i-2.5f) <= 0.5f && abs(j-2.5f) <= 0.5f) {
-                    _boxes.erase(_boxes.end()-1);
+                if (abs(i - 2.5f) >= 1.5f && abs(j - 2.5f) >= 1.5f || abs(i - 2.5f) <= 0.5f && abs(j - 2.5f) <= 0.5f) {
+                    _boxes.erase(_boxes.end() - 1);
                     continue;
                 }
             }
         }
 
-        _boxes.resize(_boxes.size()+1);
-        auto &wall1 = _boxes.back();
-        wall1.color = glm::vec3(1.0, 0.6, 0.3);
-        wall1.box.isStatic = true;
-        wall1.box.dimension = glm::vec3(10, 0.6f, 10);
+        _boxes.resize(_boxes.size() + 1);
+        auto & wall1          = _boxes.back();
+        wall1.color           = glm::vec3(1.0, 0.6, 0.3);
+        wall1.box.isStatic    = true;
+        wall1.box.dimension   = glm::vec3(10, 0.6f, 10);
         wall1.box.orientation = glm::quat(glm::vec3(0, 0, -0.6));
-        wall1.box.position = glm::vec3(-9.5,3,0);
+        wall1.box.position    = glm::vec3(-9.5, 3, 0);
 
-        _boxes.resize(_boxes.size()+1);
-        auto &wall2 = _boxes.back();
-        wall2.color = glm::vec3(1.0, 0.6, 0.3);
-        wall2.box.isStatic = true;
-        wall2.box.dimension = glm::vec3(10, 0.6f, 10);
+        _boxes.resize(_boxes.size() + 1);
+        auto & wall2          = _boxes.back();
+        wall2.color           = glm::vec3(1.0, 0.6, 0.3);
+        wall2.box.isStatic    = true;
+        wall2.box.dimension   = glm::vec3(10, 0.6f, 10);
         wall2.box.orientation = glm::quat(glm::vec3(0, 0, 0.6));
-        wall2.box.position = glm::vec3(9.5,3,0);
-        
-        _boxes.resize(_boxes.size()+1);
-        auto &wall3 = _boxes.back();
-        wall3.color = glm::vec3(1.0, 0.6, 0.3);
-        wall3.box.isStatic = true;
-        wall3.box.dimension = glm::vec3(10, 0.6f, 10);
+        wall2.box.position    = glm::vec3(9.5, 3, 0);
+
+        _boxes.resize(_boxes.size() + 1);
+        auto & wall3          = _boxes.back();
+        wall3.color           = glm::vec3(1.0, 0.6, 0.3);
+        wall3.box.isStatic    = true;
+        wall3.box.dimension   = glm::vec3(10, 0.6f, 10);
         wall3.box.orientation = glm::quat(glm::vec3(-0.6, 0, 0));
-        wall3.box.position = glm::vec3(0,3,9.5);
+        wall3.box.position    = glm::vec3(0, 3, 9.5);
 
-        _boxes.resize(_boxes.size()+1);
-        auto &wall4 = _boxes.back();
-        wall4.color = glm::vec3(1.0, 0.6, 0.3);
-        wall4.box.isStatic = true;
-        wall4.box.dimension = glm::vec3(10, 0.6f, 10);
+        _boxes.resize(_boxes.size() + 1);
+        auto & wall4          = _boxes.back();
+        wall4.color           = glm::vec3(1.0, 0.6, 0.3);
+        wall4.box.isStatic    = true;
+        wall4.box.dimension   = glm::vec3(10, 0.6f, 10);
         wall4.box.orientation = glm::quat(glm::vec3(0.6, 0, 0));
-        wall4.box.position = glm::vec3(0,3,-9.5);
+        wall4.box.position    = glm::vec3(0, 3, -9.5);
 
-        _boxes.resize(_boxes.size()+1);
-        auto &ground = _boxes.back();
-        ground.color = glm::vec3(1.0, 0.6, 0.2);
-        ground.box.isStatic = true;
-        ground.box.dimension = glm::vec3(10, 0.6f, 10);
+        _boxes.resize(_boxes.size() + 1);
+        auto & ground          = _boxes.back();
+        ground.color           = glm::vec3(1.0, 0.6, 0.2);
+        ground.box.isStatic    = true;
+        ground.box.dimension   = glm::vec3(10, 0.6f, 10);
         ground.box.orientation = glm::quat(glm::vec3(0, 0, 0));
-        ground.box.position = glm::vec3(0,-1,0);
+        ground.box.position    = glm::vec3(0, -1, 0);
 
         _collisionSystem.items.clear();
         for (auto & box : _boxes) {

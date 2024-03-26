@@ -62,6 +62,14 @@ namespace VCX::Labs::RigidBody {
             applyTorque(-rotateDampingFactor * glm::length2(omega) * normalized);
         }
     }
+    glm::mat3 RigidBody::getRotatedInertia() const {
+        auto rotationMatrix = glm::toMat3(orientation);
+        auto rotatedInertia = rotationMatrix * inertia * glm::transpose(rotationMatrix);
+        return rotatedInertia;
+    }
+    void RigidBody::setAngularMomentumByOmega(glm::vec3 newOmega) {
+        angulayMomentum = getRotatedInertia() * newOmega;
+    }
     void Box::setInertia() {
         inertia[0][0] = mass / 12.0 * (dimension[1] * dimension[1] + dimension[2] * dimension[2]);
         inertia[1][1] = mass / 12.0 * (dimension[0] * dimension[0] + dimension[2] * dimension[2]);

@@ -27,6 +27,8 @@ namespace VCX::Labs::RigidBody {
         virtual void setMass();
         virtual void applyTranslDamping(float translDampingFactor);
         virtual void applyRotateDamping(float rotateDampingFactor);
+        glm::mat3    getRotatedInertia() const;
+        void         setAngularMomentumByOmega(glm::vec3 newOmega);
         void         apply(glm::vec3 force, glm::vec3 point = glm::vec3(0, 0, 0));
         void         applyTorque(glm::vec3 torque);
         // update velocity and omega
