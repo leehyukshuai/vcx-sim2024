@@ -52,13 +52,13 @@ namespace VCX::Labs::RigidBody {
     }
     void RigidBody::applyTranslDamping(float translDampingFactor) {
         auto normalized = glm::normalize(velocity);
-        if (normalized.x == normalized.x && normalized.y == normalized.y && normalized.z == normalized.z) {
+        if (!(std::isnan(normalized.x) || std::isnan(normalized.y) || std::isnan(normalized.z))) {
             apply(-translDampingFactor * glm::length2(velocity) * normalized);
         }
     }
     void RigidBody::applyRotateDamping(float rotateDampingFactor) {
         auto normalized = glm::normalize(omega);
-        if (normalized.x == normalized.x && normalized.y == normalized.y && normalized.z == normalized.z) {
+        if (!(std::isnan(normalized.x) || std::isnan(normalized.y) || std::isnan(normalized.z))) {
             applyTorque(-rotateDampingFactor * glm::length2(omega) * normalized);
         }
     }
