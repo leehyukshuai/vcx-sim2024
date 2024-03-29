@@ -27,6 +27,7 @@ namespace VCX::Labs::Rendering {
         std::uint32_t                       MaterialIndex;
         explicit ModelObject(Engine::Model const& model);
         explicit ModelObject(Engine::Model const& model, const std::vector<glm::vec3>& offset);
+        explicit ModelObject(Engine::Model const& model,const std::vector<glm::vec3>& offset, const std::vector<glm::vec3>& color); 
     };
 
     struct SceneObject {
