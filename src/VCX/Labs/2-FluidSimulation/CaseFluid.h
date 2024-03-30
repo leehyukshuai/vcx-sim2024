@@ -16,7 +16,7 @@ namespace VCX::Labs::Fluid {
 
     class CaseFluid : public Common::ICase {
     public:
-        CaseFluid(std::initializer_list<Assets::ExampleScene> && scenes);
+        CaseFluid();
 
         virtual std::string_view const GetName() override { return "Fluid Simulation"; }
 
@@ -25,8 +25,6 @@ namespace VCX::Labs::Fluid {
         virtual void                     OnProcessInput(ImVec2 const & pos) override;
 
     private:
-        std::vector<Assets::ExampleScene> const _scenes;
-
         Engine::GL::UniqueProgram         _program;
         Engine::GL::UniqueProgram         _lineprogram;
         Engine::GL::UniqueRenderFrame     _frame;
@@ -40,7 +38,6 @@ namespace VCX::Labs::Fluid {
         float                             _ambientScale { 1 };
         bool                              _useGammaCorrection { true };
         int                               _attenuationOrder { 2 };
-        int                               _bumpMappingPercent { 20 };
 
         Engine::GL::UniqueIndexedRenderItem _BoundaryItem;
         Common::OrbitCameraManager          _cameraManager;
@@ -48,12 +45,10 @@ namespace VCX::Labs::Fluid {
         bool                                _stopped { false };
         Engine::Model                       _sphere;
         int                                 _res { 16 };
-        float                               _r;
-        int                                 numofSpheres;
-        Fluid::NaiveSimulator                    _simulation;
+        float                               _r;                     // radius of particle
+        int                                 _numofSpheres;
+        Fluid::Simulator                    _simulation;
 
-        char const *          GetSceneName(std::size_t const i) const { return VCX::Labs::Rendering::Content::SceneNames[std::size_t(_scenes[i])].c_str(); }
-        Engine::Scene const & GetScene(std::size_t const i) const { return VCX::Labs::Rendering::Content::Scenes[std::size_t(_scenes[i])]; }
         void                  ResetSystem();
     };
 } // namespace VCX::Labs::GettingStarted

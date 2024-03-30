@@ -17,12 +17,11 @@ namespace VCX::Labs::Fluid {
     };
     const std::vector<std::uint32_t> line_index = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 }; // line index
 
-    CaseFluid::CaseFluid(std::initializer_list<Assets::ExampleScene> && scenes) :
-        _scenes(scenes),
+    CaseFluid::CaseFluid() :
         _program(
             Engine::GL::UniqueProgram({
-                Engine::GL::SharedShader("assets/shaders/sphere_phong.vert"),
-                Engine::GL::SharedShader("assets/shaders/phong.frag") })),
+                Engine::GL::SharedShader("assets/shaders/fluid.vert"),
+                Engine::GL::SharedShader("assets/shaders/fluid.frag") })),
         _lineprogram(
             Engine::GL::UniqueProgram({
                 Engine::GL::SharedShader("assets/shaders/flat.vert"),
@@ -32,38 +31,56 @@ namespace VCX::Labs::Fluid {
             .Add<glm::vec3>("position", Engine::GL::DrawFrequency::Stream , 0), Engine::GL::PrimitiveType::Lines){ 
         _cameraManager.AutoRotate = false;
         _program.BindUniformBlock("PassConstants", 1);
-        _program.GetUniforms().SetByName("u_DiffuseMap" , 0);
-        _program.GetUniforms().SetByName("u_SpecularMap", 1);
-        _program.GetUniforms().SetByName("u_HeightMap"  , 2);
         _lineprogram.GetUniforms().SetByName("u_Color",  glm::vec3(1.0f));
         _BoundaryItem.UpdateElementBuffer(line_index);
+
+        _sceneObject.ReplaceScene(VCX::Labs::Rendering::Content::Scenes[std::size_t(Assets::ExampleScene::Fluid)]);
         ResetSystem();
-        _sphere = Engine::Model{.Mesh = Engine::Sphere(6,_r), .MaterialIndex = 0};
     }
 
     void CaseFluid::OnSetupPropsUI() {
-        if(ImGui::Button("Reset System")) 
-            ResetSystem();
-        ImGui::SameLine();
-        if(ImGui::Button(_stopped ? "Start Simulation":"Stop Simulation"))
-            _stopped = ! _stopped;
+        if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if(ImGui::Button("Reset System")) 
+                ResetSystem();
+            ImGui::SameLine();
+            if(ImGui::Button(_stopped ? "Start Simulation":"Stop Simulation"))
+                _stopped = ! _stopped;
+            if (ImGui::SliderInt("Resolution", &_res, 4, 64))
+                _recompute = true;
+        }
         ImGui::Spacing();
-        // ImGui::SliderFloat("Mass", &_simulation.Mass, .5f, 5.f);
-        // ImGui::SliderFloat("Omega.", &_simulation.Omega, .1f, 1.f);
-        // ImGui::SliderFloat("Damp.", &_simulation.Damping, .1f, 1.f);
+
+        if (ImGui::CollapsingHeader("Appearance")) {
+            _uniformDirty |= ImGui::RadioButton("Phong Model", &_useBlinn, 0);
+            ImGui::SameLine();
+            _uniformDirty |= ImGui::RadioButton("Blinn-Phong Model", &_useBlinn, 1);
+            _uniformDirty |= ImGui::SliderFloat("Shininess", &_shininess, 1, 128, "%.1f", ImGuiSliderFlags_Logarithmic);
+            _uniformDirty |= ImGui::SliderFloat("Ambient", &_ambientScale, 0.f, 2.f, "%.2fx");
+            _uniformDirty |= ImGui::Checkbox("Gamma Correction", &_useGammaCorrection);
+            _uniformDirty |= ImGui::SliderInt("Attenuation", &_attenuationOrder, 0, 2);
+
+            ImGui::SliderFloat("Bnd Width", &_BndWidth, 0.f, 6.f, "%.1f");
+            ImGui::Combo("Anti-Aliasing", &_msaa, "None\0002x MSAA\0004x MSAA\0008x MSAA\0");
+            Common::ImGuiHelper::SaveImage(_frame.GetColorAttachment(), _frame.GetSize(), true);
+        }
+        ImGui::Spacing();
+
+		if (ImGui::CollapsingHeader("Control")) {
+            ImGui::Checkbox("Ease Touch", &_cameraManager.EnableDamping);
+        }
+        ImGui::Spacing();
     }
 
 
     Common::CaseRenderResult CaseFluid::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
         if (_recompute) {
             _recompute = false;
-            _sceneObject.ReplaceScene(GetScene(_sceneIdx));
-            _cameraManager.Save(_sceneObject.Camera);
+            ResetSystem();
         }
         if (! _stopped) _simulation.SimulateTimestep(Engine::GetDeltaTime());
         
         _BoundaryItem.UpdateVertexBuffer("position", Engine::make_span_bytes<glm::vec3>(vertex_pos));
-        _frame.Resize(desiredSize);
+        _frame.Resize(desiredSize, 1 << _msaa);
 
         _cameraManager.Update(_sceneObject.Camera);
         _sceneObject.PassConstantsBlock.Update(&VCX::Labs::Rendering::SceneObject::PassConstants::Projection, _sceneObject.Camera.GetProjectionMatrix((float(desiredSize.first) / desiredSize.second)));
@@ -79,7 +96,6 @@ namespace VCX::Labs::Fluid {
             _program.GetUniforms().SetByName("u_Shininess"         , _shininess);
             _program.GetUniforms().SetByName("u_UseGammaCorrection", int(_useGammaCorrection));
             _program.GetUniforms().SetByName("u_AttenuationOrder"  , _attenuationOrder);            
-            _program.GetUniforms().SetByName("u_BumpMappingBlend"  , _bumpMappingPercent * .01f);            
         }
         
         gl_using(_frame);
@@ -89,10 +105,13 @@ namespace VCX::Labs::Fluid {
         _BoundaryItem.Draw({ _lineprogram.Use() });
         glLineWidth(1.f);
 
-        Rendering::ModelObject m = Rendering::ModelObject(_sphere,_simulation.Positions);
+        _r = _simulation.m_particleRadius;
+        _numofSpheres = _simulation.m_iNumSpheres;
+        _sphere = Engine::Model{.Mesh = Engine::Sphere(6,_r), .MaterialIndex = 0};
+        Rendering::ModelObject m = Rendering::ModelObject(_sphere,_simulation.m_particlePos,_simulation.m_particleColor);
         auto const & material    = _sceneObject.Materials[0];
         m.Mesh.Draw({ material.Albedo.Use(),  material.MetaSpec.Use(), material.Height.Use(),_program.Use() },
-            _sphere.Mesh.Indices.size(), 0, numofSpheres);
+            _sphere.Mesh.Indices.size(), 0, _numofSpheres);
         
         glDepthFunc(GL_LEQUAL);
         glDepthFunc(GL_LESS);
@@ -111,30 +130,6 @@ namespace VCX::Labs::Fluid {
     }
 
     void CaseFluid::ResetSystem(){
-        glm::vec3 tank(1.0f);
-        glm::vec3 relWater = {0.6f, 0.8f, 0.6f};
-        float           _h = tank.y / _res;
-                        _r = 0.3 * _h; //cell size
-        float           dx = 2.0 * _r;
-        float           dy = sqrt(3.0) / 2.0 * dx;
-        float           dz = dx;
-        
-        int numX = floor((relWater.x * tank.x - 2.0  * _h -2.0 * _r) / dx);
-        int numY = floor((relWater.y * tank.y - 2.0  * _h -2.0 * _r) / dy);
-        int numZ = floor((relWater.z * tank.z - 2.0  * _h -2.0 * _r) / dz);
-        numofSpheres = numX * numY * numZ;
-
-        _simulation.Positions.clear();
-        _simulation.Velocities.clear();
-
-        for(int i = 0 ; i < numX ; i++)
-            for(int j = 0 ; j < numY ; j++)
-                for(int k = 0 ; k < numZ ; k++){
-                    _simulation.Positions.push_back(glm::vec3(_h + _r + dx * i + (j % 2 == 0 ? 0.0 : _r) +  0.1f,
-                     _h + _r + dy * j , _h + _r + dz * k + (j % 2 == 0 ? 0.0 : _r) ) + glm::vec3(-0.5f));
-                     _simulation.InitPositions.push_back(glm::vec3(_h + _r + dx * i + (j % 2 == 0 ? 0.0 : _r),
-                     _h + _r + dy * j, _h + _r + dz * k + (j % 2 == 0 ? 0.0 : _r)) + glm::vec3(-0.5f));
-                    _simulation.Velocities.push_back(glm::vec3(0.0f));
-                }
+        _simulation.setupScene(_res);
     }
 }

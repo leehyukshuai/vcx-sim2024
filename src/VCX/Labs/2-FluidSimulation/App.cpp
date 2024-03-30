@@ -4,8 +4,7 @@
 namespace VCX::Labs::Fluid {
 
     App::App():
-        _ui(Labs::Common::UIOptions {}),
-        _caseFluid({ Assets::ExampleScene::Fluid }) {
+        _ui(Labs::Common::UIOptions {}){
     }
 
     void App::OnFrame() {
