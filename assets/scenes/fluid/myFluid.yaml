@@ -1,0 +1,21 @@
+Reflection: Empirical
+AmbientIntensity: [0.05, 0.05, 0.05]
+
+Cameras:
+  - Eye: [0.5, 0.5, 2.5]
+    Target: [0.5, 0.5, 0.5]
+    Up: [0, 1, 0]
+    Fovy: 45
+    ZNear: 0.01
+    ZFar: 1000
+
+Lights:
+  - Type: Directional
+    Direction: [1, 1, 1]
+    Intensity: [3, 3, 3]
+
+Materials:
+  - Name: Particle
+    Blend: Opaque
+    Diffuse: [.5, .5, .5]
+    Specular: [.4, .4, .4, 32.]

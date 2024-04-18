@@ -24,6 +24,8 @@ namespace VCX::Labs::Fluid {
         virtual Common::CaseRenderResult OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) override;
         virtual void                     OnProcessInput(ImVec2 const & pos) override;
 
+        void OnProcessMouseControl(glm::vec3 delta);
+
     private:
         Engine::GL::UniqueProgram         _program;
         Engine::GL::UniqueProgram         _lineprogram;

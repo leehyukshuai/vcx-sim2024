@@ -3,17 +3,19 @@
 #include "Labs/2-FluidSimulation/CaseFluid.h"
 #include "Labs/Common/ImGuiHelper.h"
 #include <iostream>
+#include "Engine/loader.h"
+#include "CaseFluid.h"
 
 namespace VCX::Labs::Fluid {
     const std::vector<glm::vec3> vertex_pos = {
-            glm::vec3(-0.5f, -0.5f, -0.5f),
-            glm::vec3(0.5f, -0.5f, -0.5f),  
-            glm::vec3(0.5f, 0.5f, -0.5f),  
-            glm::vec3(-0.5f, 0.5f, -0.5f), 
-            glm::vec3(-0.5f, -0.5f, 0.5f),  
-            glm::vec3(0.5f, -0.5f, 0.5f),   
-            glm::vec3(0.5f, 0.5f, 0.5f),   
-            glm::vec3(-0.5f, 0.5f, 0.5f)
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f),  
+            glm::vec3(1.0f, 1.0f, 0.0f),  
+            glm::vec3(0.0f, 1.0f, 0.0f), 
+            glm::vec3(0.0f, 0.0f, 1.0f),  
+            glm::vec3(1.0f, 0.0f, 1.0f),   
+            glm::vec3(1.0f, 1.0f, 1.0f),   
+            glm::vec3(0.0f, 1.0f, 1.0f)
     };
     const std::vector<std::uint32_t> line_index = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 }; // line index
 
@@ -34,19 +36,33 @@ namespace VCX::Labs::Fluid {
         _lineprogram.GetUniforms().SetByName("u_Color",  glm::vec3(1.0f));
         _BoundaryItem.UpdateElementBuffer(line_index);
 
-        _sceneObject.ReplaceScene(VCX::Labs::Rendering::Content::Scenes[std::size_t(Assets::ExampleScene::Fluid)]);
+
+        _sceneObject.ReplaceScene(Engine::LoadScene("assets/scenes/fluid/myFluid.yaml"));
         ResetSystem();
     }
 
     void CaseFluid::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if(ImGui::Button("Reset System")) 
+            if(ImGui::Button("Reset System")) {
+                _stopped = true;
                 ResetSystem();
+            }
             ImGui::SameLine();
             if(ImGui::Button(_stopped ? "Start Simulation":"Stop Simulation"))
                 _stopped = ! _stopped;
+            if (_simulation.m_busyFlag) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.3f, 1.0f));
+                ImGui::TextWrapped("Warning: Due to performance considerations, the simulation timestep is fixed at 0.02 seconds; try to lower Resolution to dismiss this warning");
+                ImGui::PopStyleColor();
+            }
             if (ImGui::SliderInt("Resolution", &_res, 4, 64))
                 _recompute = true;
+            ImGui::SliderFloat("Flip Ratio", &_simulation.m_fRatio, 0.0f, 1.0f);
+            if (ImGui::Button("Flip95")) _simulation.m_fRatio = 0.95f;
+            ImGui::SameLine();
+            if (ImGui::Button("Flip")) _simulation.m_fRatio = 1.0f;
+            ImGui::SameLine();
+            if (ImGui::Button("PIC")) _simulation.m_fRatio = 0.0f;
         }
         ImGui::Spacing();
 
@@ -78,6 +94,8 @@ namespace VCX::Labs::Fluid {
             ResetSystem();
         }
         if (! _stopped) _simulation.SimulateTimestep(Engine::GetDeltaTime());
+
+        OnProcessMouseControl(_cameraManager.getMouseMove());
         
         _BoundaryItem.UpdateVertexBuffer("position", Engine::make_span_bytes<glm::vec3>(vertex_pos));
         _frame.Resize(desiredSize, 1 << _msaa);
@@ -105,14 +123,18 @@ namespace VCX::Labs::Fluid {
         _BoundaryItem.Draw({ _lineprogram.Use() });
         glLineWidth(1.f);
 
-        _r = _simulation.m_particleRadius;
-        _numofSpheres = _simulation.m_iNumSpheres;
-        _sphere = Engine::Model{.Mesh = Engine::Sphere(6,_r), .MaterialIndex = 0};
-        Rendering::ModelObject m = Rendering::ModelObject(_sphere,_simulation.m_particlePos,_simulation.m_particleColor);
-        auto const & material    = _sceneObject.Materials[0];
-        m.Mesh.Draw({ material.Albedo.Use(),  material.MetaSpec.Use(), material.Height.Use(),_program.Use() },
-            _sphere.Mesh.Indices.size(), 0, _numofSpheres);
-        
+        auto _particleSphere = Engine::Model{.Mesh = Engine::Sphere(6,_simulation.m_particleRadius), .MaterialIndex = 0};
+        Rendering::ModelObject particles = Rendering::ModelObject(_particleSphere,_simulation.m_particlePos,_simulation.m_particleColor);
+        auto const & particleMaterial    = _sceneObject.Materials[0];
+        particles.Mesh.Draw({ particleMaterial.Albedo.Use(),  particleMaterial.MetaSpec.Use(), particleMaterial.Height.Use(),_program.Use() },
+            _particleSphere.Mesh.Indices.size(), 0, _simulation.m_iNumSpheres);
+
+        auto _obstacleSphere = Engine::Model{.Mesh = Engine::Sphere(6,_simulation.m_obstacleRadius), .MaterialIndex = 0};
+        Rendering::ModelObject obstacle = Rendering::ModelObject(_obstacleSphere,{_simulation.m_obstaclePos},{_simulation.m_obstacleColor});
+        auto const & obstacleMaterial    = _sceneObject.Materials[0];
+        obstacle.Mesh.Draw({ obstacleMaterial.Albedo.Use(),  obstacleMaterial.MetaSpec.Use(), obstacleMaterial.Height.Use(),_program.Use() },
+            _obstacleSphere.Mesh.Indices.size(), 0, 1);
+
         glDepthFunc(GL_LEQUAL);
         glDepthFunc(GL_LESS);
         glDisable(GL_DEPTH_TEST);
@@ -129,7 +151,16 @@ namespace VCX::Labs::Fluid {
         _cameraManager.ProcessInput(_sceneObject.Camera, pos);
     }
 
-    void CaseFluid::ResetSystem(){
+    void CaseFluid::OnProcessMouseControl(glm::vec3 delta) {
+        float dt = Engine::GetDeltaTime();
+        float scale = 0.2f;
+        auto vel = delta / dt;
+        _simulation.m_obstacleVel = vel;
+        _simulation.m_obstaclePos += delta * scale;
+    }
+
+    void CaseFluid::ResetSystem() {
+        _simulation.initialize();
         _simulation.setupScene(_res);
     }
 }
