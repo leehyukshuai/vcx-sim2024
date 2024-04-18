@@ -11,7 +11,6 @@
 #include "Labs/Scene/Content.h"
 #include "Labs/Scene/SceneObject.h"
 
-
 namespace VCX::Labs::Fluid {
 
     class CaseFluid : public Common::ICase {
@@ -28,6 +27,7 @@ namespace VCX::Labs::Fluid {
 
     private:
         Engine::GL::UniqueProgram         _program;
+        Engine::GL::UniqueProgram         _skyboxProgram;
         Engine::GL::UniqueProgram         _lineprogram;
         Engine::GL::UniqueRenderFrame     _frame;
         VCX::Labs::Rendering::SceneObject _sceneObject;
@@ -47,10 +47,10 @@ namespace VCX::Labs::Fluid {
         bool                                _stopped { false };
         Engine::Model                       _sphere;
         int                                 _res { 16 };
-        float                               _r;                     // radius of particle
+        float                               _r; // radius of particle
         int                                 _numofSpheres;
         Fluid::Simulator                    _simulation;
 
-        void                  ResetSystem();
+        void ResetSystem();
     };
-} // namespace VCX::Labs::GettingStarted
+} // namespace VCX::Labs::Fluid

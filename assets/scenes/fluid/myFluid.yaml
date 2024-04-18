@@ -1,6 +1,9 @@
 Reflection: Empirical
 AmbientIntensity: [0.05, 0.05, 0.05]
 
+Skyboxes:
+  - ["right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg"]
+
 Cameras:
   - Eye: [0.5, 0.5, 2.5]
     Target: [0.5, 0.5, 0.5]
@@ -11,8 +14,11 @@ Cameras:
 
 Lights:
   - Type: Directional
-    Direction: [1, 1, 1]
-    Intensity: [3, 3, 3]
+    Direction: [-1, 1, -1]
+    Intensity: [2, 2, 2]
+  - Type: Directional
+    Direction: [1, -1, 1]
+    Intensity: [1, 1, 1]
 
 Materials:
   - Name: Particle

@@ -9,7 +9,7 @@
 namespace VCX::Labs::Fluid {
     const std::vector<glm::vec3> vertex_pos = {
             glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(1.0f, 0.0f, 0.0f),  
+            glm::vec3(1.0f, 0.0f, 0.0f), 
             glm::vec3(1.0f, 1.0f, 0.0f),  
             glm::vec3(0.0f, 1.0f, 0.0f), 
             glm::vec3(0.0f, 0.0f, 1.0f),  
@@ -28,16 +28,22 @@ namespace VCX::Labs::Fluid {
             Engine::GL::UniqueProgram({
                 Engine::GL::SharedShader("assets/shaders/flat.vert"),
                 Engine::GL::SharedShader("assets/shaders/flat.frag") })),
+        _skyboxProgram(
+            Engine::GL::UniqueProgram({
+                Engine::GL::SharedShader("assets/shaders/skybox.vert"),
+                Engine::GL::SharedShader("assets/shaders/skybox.frag") })),
         _sceneObject(1),
         _BoundaryItem(Engine::GL::VertexLayout()
             .Add<glm::vec3>("position", Engine::GL::DrawFrequency::Stream , 0), Engine::GL::PrimitiveType::Lines){ 
         _cameraManager.AutoRotate = false;
         _program.BindUniformBlock("PassConstants", 1);
+        _skyboxProgram.BindUniformBlock("PassConstants", 1);
+        _skyboxProgram.GetUniforms().SetByName("u_Skybox", 4);
         _lineprogram.GetUniforms().SetByName("u_Color",  glm::vec3(1.0f));
         _BoundaryItem.UpdateElementBuffer(line_index);
 
-
         _sceneObject.ReplaceScene(Engine::LoadScene("assets/scenes/fluid/myFluid.yaml"));
+        _sceneObject.Skybox.value().CubeMap.SetUnit(4);
         ResetSystem();
     }
 
@@ -58,6 +64,8 @@ namespace VCX::Labs::Fluid {
             if (ImGui::SliderInt("Resolution", &_res, 4, 64))
                 _recompute = true;
             ImGui::SliderFloat("Flip Ratio", &_simulation.m_fRatio, 0.0f, 1.0f);
+            ImGui::Text("Mode:");
+            ImGui::SameLine();
             if (ImGui::Button("Flip95")) _simulation.m_fRatio = 0.95f;
             ImGui::SameLine();
             if (ImGui::Button("Flip")) _simulation.m_fRatio = 1.0f;
@@ -104,6 +112,7 @@ namespace VCX::Labs::Fluid {
         _sceneObject.PassConstantsBlock.Update(&VCX::Labs::Rendering::SceneObject::PassConstants::Projection, _sceneObject.Camera.GetProjectionMatrix((float(desiredSize.first) / desiredSize.second)));
         _sceneObject.PassConstantsBlock.Update(&VCX::Labs::Rendering::SceneObject::PassConstants::View, _sceneObject.Camera.GetViewMatrix());
         _sceneObject.PassConstantsBlock.Update(&VCX::Labs::Rendering::SceneObject::PassConstants::ViewPosition, _sceneObject.Camera.Eye);
+
         _lineprogram.GetUniforms().SetByName("u_Projection", _sceneObject.Camera.GetProjectionMatrix((float(desiredSize.first) / desiredSize.second)));
         _lineprogram.GetUniforms().SetByName("u_View"      , _sceneObject.Camera.GetViewMatrix());
         
@@ -122,7 +131,7 @@ namespace VCX::Labs::Fluid {
         glLineWidth(_BndWidth);
         _BoundaryItem.Draw({ _lineprogram.Use() });
         glLineWidth(1.f);
-
+        
         auto _particleSphere = Engine::Model{.Mesh = Engine::Sphere(6,_simulation.m_particleRadius), .MaterialIndex = 0};
         Rendering::ModelObject particles = Rendering::ModelObject(_particleSphere,_simulation.m_particlePos,_simulation.m_particleColor);
         auto const & particleMaterial    = _sceneObject.Materials[0];
@@ -136,6 +145,8 @@ namespace VCX::Labs::Fluid {
             _obstacleSphere.Mesh.Indices.size(), 0, 1);
 
         glDepthFunc(GL_LEQUAL);
+        auto const & skybox = _sceneObject.Skybox.value();
+        skybox.Mesh.Draw({ skybox.CubeMap.Use(), _skyboxProgram.Use() });
         glDepthFunc(GL_LESS);
         glDisable(GL_DEPTH_TEST);
 
