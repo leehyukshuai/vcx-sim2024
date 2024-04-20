@@ -77,7 +77,7 @@ namespace VCX::Labs::Fluid {
             bool  compensateDrift   = true;
 
             m_iterCounter++;
-            if (dt > 0.04f) {
+            if (dt > 0.02f) {
                 m_busyCounter++;
                 dt = 0.02f;
             }
