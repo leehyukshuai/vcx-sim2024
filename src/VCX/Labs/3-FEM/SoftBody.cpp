@@ -17,8 +17,6 @@ void VCX::Labs::FEM::SoftBody::initialize(const std::vector<glm::vec3> & positio
 
     _velocity.assign(n, glm::vec3());
     _fixed.assign(n, false);
-
-    _lame = { 500.0f, 500.0f }; // TODO: modify lame parameters!
 }
 
 void VCX::Labs::FEM::SoftBody::initialize(const std::vector<glm::vec3> & position, const std::vector<glm::uvec3> & faces, const std::vector<glm::uvec4> & tetras, const std::vector<bool> & fixed, glm::mat4 transform) {

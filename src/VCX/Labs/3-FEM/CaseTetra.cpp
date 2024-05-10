@@ -1,5 +1,4 @@
 #include "Labs/3-FEM/CaseTetra.h"
-#include "CaseTetra.h"
 #include "Engine/app.h"
 #include "Labs/Common/ImGuiHelper.h"
 #include <imgui.h>
@@ -11,7 +10,7 @@ namespace VCX::Labs::FEM {
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
 
-        initScene(1);
+        initScene();
     }
 
     void CaseTetra::OnSetupPropsUI() {
@@ -20,7 +19,7 @@ namespace VCX::Labs::FEM {
         }
         ImGui::SameLine();
         if (ImGui::Button(_pauseFlag ? "Start" : "Pause")) {
-            _pauseFlag = !_pauseFlag;
+            _pauseFlag = ! _pauseFlag;
         }
         if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto lame = _softbody.getLame();
@@ -35,9 +34,9 @@ namespace VCX::Labs::FEM {
         if (_resetFlag) {
             _resetFlag = false;
             _cameraManager.Reset(_camera);
-            initScene(1);
+            initScene();
         }
-        
+
         // camera control
         _cameraManager.Update(_camera);
         auto cameraTransform = _camera.GetTransformationMatrix((float(desiredSize.first) / desiredSize.second));
@@ -57,8 +56,8 @@ namespace VCX::Labs::FEM {
         };
         static auto translDamping = [=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
             float k = 2.0f;
-            auto n = glm::normalize(vel);
-            if (!std::isnan(n.x)) return -k * vel * vel * n;
+            auto  n = glm::normalize(vel);
+            if (! std::isnan(n.x)) return -k * vel * vel * n;
             return {};
         };
         _softbody.applyConstraint(gravityFall);
@@ -66,7 +65,7 @@ namespace VCX::Labs::FEM {
         _softbody.applyConstraint(translDamping);
 
         // update model
-        if (!_pauseFlag) {
+        if (! _pauseFlag) {
             _softbody.update(0.01f);
         } else {
             _softbody.update(0.0f);
@@ -94,13 +93,13 @@ namespace VCX::Labs::FEM {
     void CaseTetra::OnProcessMouseControl(glm::vec3 mouseDelta) {
         _softbody.applyConstraint([=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
             float k = 2.0f;
-            if (id == 1)
+            if (id == 0)
                 return k * mouseDelta;
             return {};
         });
     }
 
-    void CaseTetra::initScene(int resolution) {
+    void CaseTetra::initScene() {
         std::vector<glm::vec3> position {
             { -1, 0, -1 },
             { 1, 0, 0 },

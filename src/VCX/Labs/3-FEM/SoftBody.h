@@ -18,7 +18,7 @@ namespace VCX::Labs::FEM {
 
         std::vector<std::function<glm::vec3(glm::vec3, glm::vec3, int)>> _constraints;
 
-        std::pair<float, float> _lame;
+        std::pair<float, float> _lame { 5000.0f, 3000.0f }; // TODO: modify lame parameters!
 
     public:
         void initialize(const std::vector<glm::vec3> & position, const std::vector<glm::uvec3> & faces, const std::vector<glm::uvec4> & tetras, glm::mat4 transform);

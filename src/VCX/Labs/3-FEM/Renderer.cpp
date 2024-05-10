@@ -10,34 +10,55 @@ VCX::Labs::FEM::Renderer::Renderer():
 
 void VCX::Labs::FEM::Renderer::bind(const SoftBody & softBody) {
     const auto & faces = softBody._faces;
+    const auto & tetras = softBody._tetras;
 
     std::vector<uint32_t> faceIndices;
     faceIndices.reserve(faces.size() * 3);
     std::vector<uint32_t> lineIndices;
-    lineIndices.reserve(faces.size() * 3);
+    lineIndices.reserve(faces.size() * 6);
     std::unordered_set<uint64_t> addedEdges;
 
     for (auto & f : faces) {
         faceIndices.push_back(f.x);
         faceIndices.push_back(f.y);
         faceIndices.push_back(f.z);
-        uint64_t xy = static_cast<uint64_t>(f.x) << 32 | f.y;
-        uint64_t xz = static_cast<uint64_t>(f.x) << 32 | f.z;
-        uint64_t yz = static_cast<uint64_t>(f.y) << 32 | f.z;
-        if (addedEdges.find(xy) == addedEdges.end()) {
-            addedEdges.insert(xy);
-            lineIndices.push_back(f.x);
-            lineIndices.push_back(f.y);
+    }
+    for (auto & t : tetras) {
+        uint64_t v01 = static_cast<uint64_t>(t[0]) << 32 | t[1];
+        uint64_t v02 = static_cast<uint64_t>(t[0]) << 32 | t[2];
+        uint64_t v03 = static_cast<uint64_t>(t[0]) << 32 | t[3];
+        uint64_t v12 = static_cast<uint64_t>(t[1]) << 32 | t[2];
+        uint64_t v13 = static_cast<uint64_t>(t[1]) << 32 | t[3];
+        uint64_t v23 = static_cast<uint64_t>(t[2]) << 32 | t[3];
+        if (addedEdges.find(v01) == addedEdges.end()) {
+            addedEdges.insert(v01);
+            lineIndices.push_back(t[0]);
+            lineIndices.push_back(t[1]);
         }
-        if (addedEdges.find(xz) == addedEdges.end()) {
-            addedEdges.insert(xz);
-            lineIndices.push_back(f.x);
-            lineIndices.push_back(f.z);
+        if (addedEdges.find(v02) == addedEdges.end()) {
+            addedEdges.insert(v02);
+            lineIndices.push_back(t[0]);
+            lineIndices.push_back(t[2]);
         }
-        if (addedEdges.find(yz) == addedEdges.end()) {
-            addedEdges.insert(yz);
-            lineIndices.push_back(f.y);
-            lineIndices.push_back(f.z);
+        if (addedEdges.find(v03) == addedEdges.end()) {
+            addedEdges.insert(v03);
+            lineIndices.push_back(t[0]);
+            lineIndices.push_back(t[3]);
+        }
+        if (addedEdges.find(v12) == addedEdges.end()) {
+            addedEdges.insert(v12);
+            lineIndices.push_back(t[1]);
+            lineIndices.push_back(t[2]);
+        }
+        if (addedEdges.find(v13) == addedEdges.end()) {
+            addedEdges.insert(v13);
+            lineIndices.push_back(t[1]);
+            lineIndices.push_back(t[3]);
+        }
+        if (addedEdges.find(v23) == addedEdges.end()) {
+            addedEdges.insert(v23);
+            lineIndices.push_back(t[2]);
+            lineIndices.push_back(t[3]);
         }
     }
     _faceItem.UpdateElementBuffer(faceIndices);

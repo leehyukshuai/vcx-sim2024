@@ -10,12 +10,11 @@
 #include "Renderer.h"
 #include "SoftBody.h"
 namespace VCX::Labs::FEM {
-
-    class CaseTetra : public Common::ICase {
+    class CaseStick : public Common::ICase {
     public:
-        CaseTetra();
+        CaseStick();
 
-        virtual std::string_view const GetName() override { return "Single Tetrahedron Demo"; }
+        virtual std::string_view const GetName() override { return "A Elastic Stick"; }
 
         virtual void                     OnSetupPropsUI() override;
         virtual Common::CaseRenderResult OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) override;
