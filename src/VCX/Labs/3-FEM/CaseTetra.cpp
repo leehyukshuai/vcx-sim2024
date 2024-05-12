@@ -45,16 +45,16 @@ namespace VCX::Labs::FEM {
         OnProcessMouseControl(_cameraManager.getMouseMove());
 
         // apply constraints
-        static auto gravityFall = [=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
+        static auto gravityFall = [=](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
             float k = 0.1f;
             return glm::vec3(0, -k, 0);
         };
-        static auto floorSupport = [=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
+        static auto floorSupport = [=](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
             float k = 1000.0f;
             if (pos.y < 0) return glm::vec3(0, -k * pos.y, 0);
             return {};
         };
-        static auto translDamping = [=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
+        static auto translDamping = [=](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
             float k = 2.0f;
             auto  n = glm::normalize(vel);
             if (! std::isnan(n.x)) return -k * vel * vel * n;
@@ -102,9 +102,9 @@ namespace VCX::Labs::FEM {
     void CaseTetra::initScene() {
         std::vector<glm::vec3> position {
             { -1, 0, -1 },
-            { 1, 0, 0 },
-            { 0, 1, 0 },
-            { 0, 0, 1 }
+            {  1, 0,  0 },
+            {  0, 1,  0 },
+            {  0, 0,  1 }
         };
         const std::vector<glm::uvec3> faces {
             { 0, 1, 2 },

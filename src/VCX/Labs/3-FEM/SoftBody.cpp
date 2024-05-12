@@ -29,7 +29,7 @@ int VCX::Labs::FEM::SoftBody::findnNearest(const glm::vec3 & eye, const glm::vec
     return 0;
 }
 
-void VCX::Labs::FEM::SoftBody::applyConstraint(const std::function<glm::vec3(glm::vec3, glm::vec3, int)> & constraint) {
+void VCX::Labs::FEM::SoftBody::applyConstraint(const std::function<glm::vec3(glm::vec3&, glm::vec3&, int)> & constraint) {
     _constraints.push_back(constraint);
 }
 

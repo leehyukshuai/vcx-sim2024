@@ -9,12 +9,13 @@
 #include "Labs/Common/OrbitCameraManager.h"
 #include "Renderer.h"
 #include "SoftBody.h"
+#include <unordered_set>
 namespace VCX::Labs::FEM {
     class CaseStick : public Common::ICase {
     public:
         CaseStick();
 
-        virtual std::string_view const GetName() override { return "A Elastic Stick"; }
+        virtual std::string_view const GetName() override { return "An Elastic Stick"; }
 
         virtual void                     OnSetupPropsUI() override;
         virtual Common::CaseRenderResult OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) override;
@@ -27,6 +28,8 @@ namespace VCX::Labs::FEM {
     private:
         bool _resetFlag { false };
         bool _pauseFlag { false };
+
+        std::unordered_set<unsigned> _fixed;
 
         Common::OrbitCameraManager _cameraManager;
         Engine::Camera             _camera;

@@ -14,7 +14,7 @@ namespace VCX::Labs::FEM {
         CaseTetra _caseTetra;
         CaseStick _caseStick;
 
-        std::size_t _caseId = 0;
+        std::size_t _caseId = 1;
 
         std::vector<std::reference_wrapper<Common::ICase>> _cases = { _caseTetra, _caseStick };
 

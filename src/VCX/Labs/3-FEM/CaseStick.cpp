@@ -6,6 +6,7 @@
 namespace VCX::Labs::FEM {
     CaseStick::CaseStick() {
         _camera.Eye = glm::vec3(3, 3, 3);
+        _camera.ZFar = 1000.0f;
 
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
@@ -44,23 +45,18 @@ namespace VCX::Labs::FEM {
         OnProcessMouseControl(_cameraManager.getMouseMove());
 
         // apply constraints
-        static auto gravityFall = [=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
-            float k = 0.1f;
+        static auto gravityFall = [&](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
+            float k = 10.0f;
             return glm::vec3(0, -k, 0);
         };
-        static auto floorSupport = [=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
-            float k = 1000.0f;
-            if (pos.y < 0) return glm::vec3(0, -k * pos.y, 0);
-            return {};
-        };
-        static auto translDamping = [=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
+        static auto translDamping = [&](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
             float k = 2.0f;
             auto  n = glm::normalize(vel);
             if (! std::isnan(n.x)) return -k * vel * vel * n;
             return {};
         };
+
         _softbody.applyConstraint(gravityFall);
-        _softbody.applyConstraint(floorSupport);
         _softbody.applyConstraint(translDamping);
 
         // update model
@@ -90,16 +86,23 @@ namespace VCX::Labs::FEM {
     }
 
     void CaseStick::OnProcessMouseControl(glm::vec3 mouseDelta) {
-        _softbody.applyConstraint([=](glm::vec3 pos, glm::vec3 vel, int id) -> glm::vec3 {
+        _softbody.applyConstraint([&](glm::vec3 &pos, glm::vec3 &vel, int id) -> glm::vec3 {
+            float k = 0.01f;
+            if (_fixed.find(id) != _fixed.end()) {
+                pos += k * mouseDelta;
+            }
             return {};
         });
     }
 
     void CaseStick::initScene() {
-        glm::uvec3 w { 1, 1, 1 };
-        float delta = 1.0f;
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.1, 0.1, 0.1));
+        glm::uvec3 w { 40, 2, 2 };
+        float      delta     = 1.0f;
+        glm::mat4  transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.1, 0.1, 0.1));
 
+        auto GetID = [=](std::size_t const i, std::size_t const j, std::size_t const k) -> unsigned {
+            return i * (w.y + 1) * (w.z + 1) + j * (w.z + 1) + k;
+        };
 
         std::vector<glm::vec3>  position;
         std::vector<bool>       fixed;
@@ -111,15 +114,13 @@ namespace VCX::Labs::FEM {
                     position.emplace_back(i * delta, j * delta, k * delta);
                     if (i == 0) {
                         fixed.push_back(true);
+                        _fixed.insert(GetID(i, j, k));
                     } else {
                         fixed.push_back(false);
                     }
                 }
             }
         }
-        auto GetID = [=](std::size_t const i, std::size_t const j, std::size_t const k) -> unsigned {
-            return i * (w.y + 1) * (w.z + 1) + j * (w.z + 1) + k;
-        };
         for (std::size_t i = 0; i < w.x; i++) {
             for (std::size_t j = 0; j < w.y; j++) {
                 for (std::size_t k = 0; k < w.z; k++) {
