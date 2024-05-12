@@ -77,7 +77,8 @@ void VCX::Labs::FEM::SoftBody::solveInner() {
         auto G   = (glm::transpose(F) * F - glm::mat3(1.0f)) / 2.0f;
         auto S   = 2 * _lame.second * G + _lame.first * (G[0][0] + G[1][1] + G[2][2]) * glm::mat3(1.0f);
         auto P   = F * S;
-        auto fs  = -glm::determinant(E) / 6.0f * P * glm::transpose(glm::inverse(E));
+        auto V = glm::abs(glm::determinant(E)) / 6.0f;
+        auto fs  = - V * P * glm::transpose(glm::inverse(E));
         auto fst = glm::transpose(fs);
 
         glm::vec3 f1 = fst[0];
