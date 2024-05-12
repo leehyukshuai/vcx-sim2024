@@ -5,28 +5,40 @@
 
 namespace VCX::Labs::FEM {
     CaseStick::CaseStick() {
-        _camera.Eye = glm::vec3(3, 3, 3);
+        _camera.Eye  = glm::vec3(-8, 0, 20);
         _camera.ZFar = 1000.0f;
 
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
 
-        initScene();
+        initScene(_w);
     }
 
     void CaseStick::OnSetupPropsUI() {
         if (ImGui::Button("Reset")) {
             _resetFlag = true;
+            _cameraFlag = true;
         }
         ImGui::SameLine();
         if (ImGui::Button(_pauseFlag ? "Start" : "Pause")) {
             _pauseFlag = ! _pauseFlag;
         }
-        if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto lame = _softbody.getLame();
-            ImGui::DragFloat("lame lambda", &lame.first);
-            ImGui::DragFloat("lame miu", &lame.second);
-            _softbody.setLame(lame);
+        ImGui::Checkbox("Show Coordinate", &_showCoord);
+        if (ImGui::CollapsingHeader("Configs", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::DragFloat("Gravity", &_gravity, 0.1f, 0.0f, 100.0f);
+            bool changed = false;
+            changed |= ImGui::DragFloat("Young's Modulus", &_youngModulus);
+            changed |= ImGui::DragFloat("Poisson's Ratio", &_poissonRatio, 0.01, -0.95, 0.45);
+            float lambda = _youngModulus * _poissonRatio / (1 + _poissonRatio) / (1 - 2 * _poissonRatio);
+            float miu    = _youngModulus / 2 / ((1 + _poissonRatio));
+            _softbody.setLame({ lambda, miu });
+            if (ImGui::DragInt3("Resolution", reinterpret_cast<int *>(glm::value_ptr(_w)), 0.1, 1, 40)) {
+                _resetFlag = true;
+            }
+        }
+        if (ImGui::CollapsingHeader("Hint", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::TextWrapped("Pressing the Alt key while clicking the left mouse button allows you to drag this softbody.");
+            ImGui::TextWrapped("Drag the softbody with high speed is not recommended, which can cause error(and then press Reset).");
         }
     }
 
@@ -34,7 +46,11 @@ namespace VCX::Labs::FEM {
         // reset
         if (_resetFlag) {
             _resetFlag = false;
-            initScene();
+            initScene(_w);
+        }
+        if (_cameraFlag) {
+            _cameraFlag = false;
+            _cameraManager.Reset(_camera);
         }
 
         // camera control
@@ -46,8 +62,7 @@ namespace VCX::Labs::FEM {
 
         // apply constraints
         static auto gravityFall = [&](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
-            float k = 10.0f;
-            return glm::vec3(0, -k, 0);
+            return glm::vec3(0, -_gravity, 0);
         };
         static auto translDamping = [&](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
             float k = 2.0f;
@@ -56,14 +71,11 @@ namespace VCX::Labs::FEM {
             return {};
         };
 
-        _softbody.applyConstraint(gravityFall);
-        _softbody.applyConstraint(translDamping);
-
         // update model
         if (! _pauseFlag) {
+            _softbody.applyConstraint(gravityFall);
+            _softbody.applyConstraint(translDamping);
             _softbody.update(0.001f);
-        } else {
-            _softbody.update(0.0f);
         }
         _renderer.update(_softbody);
 
@@ -71,7 +83,7 @@ namespace VCX::Labs::FEM {
         _frame.Resize(desiredSize);
         gl_using(_frame);
         _renderer.draw(cameraTransform, { 0.5f, 0.5f, 1.0f }, { 0.5f, 1.0f, 0.5f });
-        _coord.draw(cameraTransform);
+        if (_showCoord) _coord.draw(cameraTransform);
 
         return Common::CaseRenderResult {
             .Fixed     = false,
@@ -86,7 +98,7 @@ namespace VCX::Labs::FEM {
     }
 
     void CaseStick::OnProcessMouseControl(glm::vec3 mouseDelta) {
-        _softbody.applyConstraint([&](glm::vec3 &pos, glm::vec3 &vel, int id) -> glm::vec3 {
+        _softbody.applyConstraint([&](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
             float k = 0.01f;
             if (_fixed.find(id) != _fixed.end()) {
                 pos += k * mouseDelta;
@@ -95,10 +107,9 @@ namespace VCX::Labs::FEM {
         });
     }
 
-    void CaseStick::initScene() {
-        glm::uvec3 w { 40, 2, 2 };
-        float      delta     = 1.0f;
-        glm::mat4  transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.1, 0.1, 0.1));
+    void CaseStick::initScene(glm::uvec3 w) {
+        float     delta     = 1.0f;
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.1, 0.1, 0.1));
 
         auto GetID = [=](std::size_t const i, std::size_t const j, std::size_t const k) -> unsigned {
             return i * (w.y + 1) * (w.z + 1) + j * (w.z + 1) + k;

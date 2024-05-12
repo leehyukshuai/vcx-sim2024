@@ -24,8 +24,9 @@ void VCX::Labs::FEM::SoftBody::initialize(const std::vector<glm::vec3> & positio
     _fixed = fixed;
 }
 
-int VCX::Labs::FEM::SoftBody::findnNearest(const glm::vec3 & eye, const glm::vec3 & dir) {
+int VCX::Labs::FEM::SoftBody::findNearest(const glm::vec3 & eye, const glm::vec3 & dir) {
     // TODO
+    // 感觉实现起来没多大必要w
     return 0;
 }
 

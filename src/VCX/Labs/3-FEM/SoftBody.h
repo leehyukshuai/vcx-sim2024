@@ -23,7 +23,7 @@ namespace VCX::Labs::FEM {
     public:
         void initialize(const std::vector<glm::vec3> & position, const std::vector<glm::uvec3> & faces, const std::vector<glm::uvec4> & tetras, glm::mat4 transform);
         void initialize(const std::vector<glm::vec3> & position, const std::vector<glm::uvec3> & faces, const std::vector<glm::uvec4> & tetras, const std::vector<bool> & fixed, glm::mat4 transform);
-        int  findnNearest(const glm::vec3 & eye, const glm::vec3 & dir);
+        int  findNearest(const glm::vec3 & eye, const glm::vec3 & dir);
         void applyConstraint(const std::function<glm::vec3(glm::vec3&, glm::vec3&, int)> & constraint);
         std::pair<float, float> getLame() const;
         void setLame(std::pair<float, float> lame);

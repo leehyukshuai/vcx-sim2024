@@ -23,11 +23,19 @@ namespace VCX::Labs::FEM {
 
         void OnProcessMouseControl(glm::vec3 mourseDelta);
 
-        void initScene();
+        void initScene(glm::uvec3 w);
 
     private:
+        float _gravity { 10.0f };
+        bool _showCoord { false };
+        bool _cameraFlag { false };
         bool _resetFlag { false };
         bool _pauseFlag { false };
+
+        float _youngModulus { 10000.0f };
+        float _poissonRatio { 0.3f };
+
+        glm::uvec3 _w { 16, 5, 5 };
 
         std::unordered_set<unsigned> _fixed;
 
