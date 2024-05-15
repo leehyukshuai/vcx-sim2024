@@ -1,5 +1,4 @@
 #include "SoftBody.h"
-#include <Eigen/Eigen>
 
 void VCX::Labs::FEM::SoftBody::initialize(const std::vector<glm::vec3> & position, const std::vector<glm::uvec3> & faces, const std::vector<glm::uvec4> & tetras, glm::mat4 transform) {
     int n = position.size();

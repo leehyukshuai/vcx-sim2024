@@ -8,6 +8,10 @@ VCX::Labs::FEM::Renderer::Renderer():
                                          Engine::GL::SharedShader("assets/shaders/flat.frag") })) {
 }
 
+void VCX::Labs::FEM::Renderer::setXRay(bool xRay) {
+    _xRay = xRay;
+}
+
 void VCX::Labs::FEM::Renderer::bind(const SoftBody & softBody) {
     const auto & faces = softBody._faces;
     const auto & tetras = softBody._tetras;
@@ -77,7 +81,11 @@ void VCX::Labs::FEM::Renderer::draw(glm::mat4 cameraTransform, glm::vec3 faceCol
     glEnable(GL_DEPTH_TEST);
     _program.GetUniforms().SetByName("u_Color", faceColor);
     _faceItem.Draw({ _program.Use() });
-    glDisable(GL_DEPTH_TEST);
+    if (_xRay) {
+        glDisable(GL_DEPTH_TEST);
+    } else {
+        glDepthFunc(GL_LEQUAL);
+    }
     _program.GetUniforms().SetByName("u_Color", lineColor);
     _lineItem.Draw({ _program.Use() });
     glEnable(GL_DEPTH_TEST);

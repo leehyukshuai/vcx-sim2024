@@ -16,7 +16,7 @@ namespace VCX::Labs::FEM {
 
     void CaseStick::OnSetupPropsUI() {
         if (ImGui::Button("Reset")) {
-            _resetFlag = true;
+            _resetFlag  = true;
             _cameraFlag = true;
         }
         ImGui::SameLine();
@@ -24,8 +24,13 @@ namespace VCX::Labs::FEM {
             _pauseFlag = ! _pauseFlag;
         }
         ImGui::Checkbox("Show Coordinate", &_showCoord);
+        if (ImGui::Checkbox("Show X Ray", &_xRay)) {
+            _renderer.setXRay(_xRay);
+        }
         if (ImGui::CollapsingHeader("Configs", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::DragFloat("Gravity", &_gravity, 0.1f, 0.0f, 100.0f);
+            ImGui::DragFloat("Delta Time", &_delta, 0.0001f, 0.0001f, 0.0021f, "%.4f");
+            ImGui::DragFloat("Damping", &_damping, 0.1f, 0.0f, 10.0f);
+            ImGui::DragFloat("Gravity", &_gravity, 0.1f, 0.0f, 200.0f);
             bool changed = false;
             changed |= ImGui::DragFloat("Young's Modulus", &_youngModulus);
             changed |= ImGui::DragFloat("Poisson's Ratio", &_poissonRatio, 0.01, -0.95, 0.45);
@@ -37,8 +42,8 @@ namespace VCX::Labs::FEM {
             }
         }
         if (ImGui::CollapsingHeader("Hint", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::TextWrapped("Pressing the Alt key while clicking the left mouse button allows you to drag this softbody.");
-            ImGui::TextWrapped("Drag the softbody with high speed is not recommended, which can cause error(and then press Reset).");
+            ImGui::TextWrapped("Pressing the Alt key to drag this softbody.");
+            ImGui::TextWrapped("To avoid collapsing, adjust Delta Time to a small number and don't drag this softbody too quickly.");
         }
     }
 
@@ -65,9 +70,8 @@ namespace VCX::Labs::FEM {
             return glm::vec3(0, -_gravity, 0);
         };
         static auto translDamping = [&](glm::vec3 & pos, glm::vec3 & vel, int id) -> glm::vec3 {
-            float k = 2.0f;
             auto  n = glm::normalize(vel);
-            if (! std::isnan(n.x)) return -k * vel * vel * n;
+            if (! std::isnan(n.x)) return -_damping * vel * vel * n;
             return {};
         };
 
@@ -75,7 +79,7 @@ namespace VCX::Labs::FEM {
         if (! _pauseFlag) {
             _softbody.applyConstraint(gravityFall);
             _softbody.applyConstraint(translDamping);
-            _softbody.update(0.001f);
+            _softbody.update(_delta);
         }
         _renderer.update(_softbody);
 
@@ -135,12 +139,35 @@ namespace VCX::Labs::FEM {
         for (std::size_t i = 0; i < w.x; i++) {
             for (std::size_t j = 0; j < w.y; j++) {
                 for (std::size_t k = 0; k < w.z; k++) {
-                    tetras.emplace_back(GetID(i, j, k), GetID(i, j, k + 1), GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1));
-                    tetras.emplace_back(GetID(i, j, k), GetID(i, j + 1, k), GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1));
-                    tetras.emplace_back(GetID(i, j, k), GetID(i, j, k + 1), GetID(i + 1, j, k + 1), GetID(i + 1, j + 1, k + 1));
-                    tetras.emplace_back(GetID(i, j, k), GetID(i + 1, j, k), GetID(i + 1, j, k + 1), GetID(i + 1, j + 1, k + 1));
-                    tetras.emplace_back(GetID(i, j, k), GetID(i, j + 1, k), GetID(i + 1, j + 1, k), GetID(i + 1, j + 1, k + 1));
-                    tetras.emplace_back(GetID(i, j, k), GetID(i + 1, j, k), GetID(i + 1, j + 1, k), GetID(i + 1, j + 1, k + 1));
+                    if (j % 2 && k % 2) {
+                        tetras.emplace_back(GetID(i, j, k), GetID(i, j, k + 1), GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1));
+                        tetras.emplace_back(GetID(i, j, k), GetID(i, j + 1, k), GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1));
+                        tetras.emplace_back(GetID(i, j, k), GetID(i, j, k + 1), GetID(i + 1, j, k + 1), GetID(i + 1, j + 1, k + 1));
+                        tetras.emplace_back(GetID(i, j, k), GetID(i + 1, j, k), GetID(i + 1, j, k + 1), GetID(i + 1, j + 1, k + 1));
+                        tetras.emplace_back(GetID(i, j, k), GetID(i, j + 1, k), GetID(i + 1, j + 1, k), GetID(i + 1, j + 1, k + 1));
+                        tetras.emplace_back(GetID(i, j, k), GetID(i + 1, j, k), GetID(i + 1, j + 1, k), GetID(i + 1, j + 1, k + 1));
+                    } else if (j % 2 && ! (k % 2)) {
+                        tetras.emplace_back(GetID(i, j + 1, k), GetID(i, j + 1, k + 1), GetID(i, j, k + 1), GetID(i + 1, j, k + 1));
+                        tetras.emplace_back(GetID(i, j + 1, k), GetID(i, j, k), GetID(i, j, k + 1), GetID(i + 1, j, k + 1));
+                        tetras.emplace_back(GetID(i, j + 1, k), GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1), GetID(i + 1, j, k + 1));
+                        tetras.emplace_back(GetID(i, j + 1, k), GetID(i + 1, j + 1, k), GetID(i + 1, j + 1, k + 1), GetID(i + 1, j, k + 1));
+                        tetras.emplace_back(GetID(i, j + 1, k), GetID(i, j, k), GetID(i + 1, j, k), GetID(i + 1, j, k + 1));
+                        tetras.emplace_back(GetID(i, j + 1, k), GetID(i + 1, j + 1, k), GetID(i + 1, j, k), GetID(i + 1, j, k + 1));
+                    } else if (! (j % 2) && ! (k % 2)) {
+                        tetras.emplace_back(GetID(i, j, k + 1), GetID(i, j, k), GetID(i, j + 1, k), GetID(i + 1, j + 1, k));
+                        tetras.emplace_back(GetID(i, j, k + 1), GetID(i, j + 1, k + 1), GetID(i, j + 1, k), GetID(i + 1, j + 1, k));
+                        tetras.emplace_back(GetID(i, j, k + 1), GetID(i, j, k), GetID(i + 1, j, k), GetID(i + 1, j + 1, k));
+                        tetras.emplace_back(GetID(i, j, k + 1), GetID(i + 1, j, k + 1), GetID(i + 1, j, k), GetID(i + 1, j + 1, k));
+                        tetras.emplace_back(GetID(i, j, k + 1), GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1), GetID(i + 1, j + 1, k));
+                        tetras.emplace_back(GetID(i, j, k + 1), GetID(i + 1, j, k + 1), GetID(i + 1, j + 1, k + 1), GetID(i + 1, j + 1, k));
+                    } else {
+                        tetras.emplace_back(GetID(i, j + 1, k + 1), GetID(i, j + 1, k), GetID(i, j, k), GetID(i + 1, j, k));
+                        tetras.emplace_back(GetID(i, j + 1, k + 1), GetID(i, j, k + 1), GetID(i, j, k), GetID(i + 1, j, k));
+                        tetras.emplace_back(GetID(i, j + 1, k + 1), GetID(i, j + 1, k), GetID(i + 1, j + 1, k), GetID(i + 1, j, k));
+                        tetras.emplace_back(GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1), GetID(i + 1, j + 1, k), GetID(i + 1, j, k));
+                        tetras.emplace_back(GetID(i, j + 1, k + 1), GetID(i, j, k + 1), GetID(i + 1, j, k + 1), GetID(i + 1, j, k));
+                        tetras.emplace_back(GetID(i, j + 1, k + 1), GetID(i + 1, j + 1, k + 1), GetID(i + 1, j, k + 1), GetID(i + 1, j, k));
+                    }
                 }
             }
         }
