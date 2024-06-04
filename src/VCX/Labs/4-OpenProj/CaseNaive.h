@@ -7,6 +7,8 @@
 #include "Labs/Common/ImageRGB.h"
 #include "Labs/Common/OrbitCameraManager.h"
 
+#include "Object.h"
+
 namespace VCX::Labs::OpenProj {
 
     class CaseNaive : public Common::ICase {
@@ -22,9 +24,12 @@ namespace VCX::Labs::OpenProj {
         void OnProcessMouseControl(glm::vec3 mourseDelta);
 
     private:
-        Engine::GL::UniqueProgram           _program;
-        Engine::GL::UniqueRenderFrame       _frame;
-        Engine::Camera                      _camera { .Eye = glm::vec3(-3, 3, 3) };
-        Common::OrbitCameraManager          _cameraManager;
+        Engine::GL::UniqueProgram     _program;
+        Engine::GL::UniqueRenderFrame _frame;
+        Engine::Camera                _camera { .Eye = glm::vec3(-3, 3, 3) };
+        Common::OrbitCameraManager    _cameraManager;
+
+        glm::vec3 _color {1.0, 0.6, 0.8};
+        Cylinder _cylinder;
     };
 } // namespace VCX::Labs::OpenProj
