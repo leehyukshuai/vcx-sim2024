@@ -134,3 +134,16 @@ target("lab3")
     if is_plat("windows") then
         add_cxflags("/EHsc")
     end
+
+target("lab4")
+    set_kind("binary")
+    add_deps("lab-common")
+    add_packages("eigen")
+    add_packages("fcl")
+    add_headerfiles("src/VCX/Labs/4-OpenProj/*.h")
+    add_headerfiles("src/VCX/Labs/4-OpenProj/*.hpp")
+    add_files      ("src/VCX/Labs/4-OpenProj/*.cpp")
+    if is_plat("windows") then
+        add_cxflags("/EHsc")
+        add_cxflags("/bigobj")
+    end
