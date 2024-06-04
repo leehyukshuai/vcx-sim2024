@@ -1,8 +1,8 @@
 #pragma once
 
-#include "RigidBody.h"
-#include "Render.h"
 #include "Collision.h"
+#include "Render.h"
+#include "RigidBody.h"
 
 namespace VCX::Labs::OpenProj {
     class Object {
@@ -19,10 +19,7 @@ namespace VCX::Labs::OpenProj {
     public:
         BoxBody boxBody;
 
-        Box():
-            Object(&boxBody) {}
-
-        Box(const glm::vec3 & dim):
+        Box(glm::vec3 dim = glm::vec3(1, 1, 1)):
             Object(&boxBody) {
             initialize(dim);
         }
@@ -39,16 +36,13 @@ namespace VCX::Labs::OpenProj {
     public:
         CylinderBody cylinderBody;
 
-        Cylinder():
-            Object(&cylinderBody) {}
-
-        Cylinder(float radius, float height):
+        Cylinder(float radius = 0.5f, float height = 1.0f, int precision = 32):
             Object(&cylinderBody) {
-            initialize(radius, height);
+            initialize(radius, height, precision);
         }
 
-        void initialize(float radius, float height) {
-            auto mesh = Mesh::generateCylinderMesh(radius, height);
+        void initialize(float radius, float height, int precision) {
+            auto mesh = Mesh::generateCylinderMesh(radius, height, precision);
             renderItem.initialize(mesh);
             auto geom = std::make_shared<fcl::Cylinder<float>>(radius, height);
             collisionItem.initialize(geom);
