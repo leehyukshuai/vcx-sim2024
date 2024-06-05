@@ -19,24 +19,25 @@ namespace VCX::Labs::OpenProj {
 
     class CollisionSystem {
         struct Contact {
-            int       id1;
-            int       id2;
+            Object *  p1;
+            Object *  p2;
             glm::vec3 pos;
             glm::vec3 normal;
             float     depth;
-            Contact(int _id1, int _id2, fcl::Vector3f _pos, fcl::Vector3f _normal, float _depth):
-                id1(_id1), id2(_id2), pos(_pos[0], _pos[1], _pos[2]), normal(_normal[0], _normal[1], _normal[2]), depth(_depth) {}
+            Contact(Object* _p1, Object* _p2, fcl::Vector3f _pos, fcl::Vector3f _normal, float _depth):
+                p1(_p1), p2(_p2), pos(_pos[0], _pos[1], _pos[2]), normal(_normal[0], _normal[1], _normal[2]), depth(_depth) {}
         };
         std::vector<Contact> contacts;
 
     public:
         std::vector<Object *> items;
 
-        float c = 0.6f; // coefficient of restitution
-        float miu_N = 0.6f;
-        float miu_T = 0.4f;
+        float c     = 0.6f; // FRICTIONLESS_IMPULSE
+        float miu_N = 0.6f; // FRICTIONAL_IMPULSE
+        float miu_T = 3.0f; // FRICTIONAL_IMPULSE
 
-        enum CollisionHandleMethod { FRICTIONLESS_IMPULSE, FRICTIONAL_IMPULSE };
+        enum CollisionHandleMethod { FRICTIONLESS_IMPULSE,
+                                     FRICTIONAL_IMPULSE };
         CollisionHandleMethod collisionMethod = FRICTIONAL_IMPULSE;
 
         void collisionDetect();

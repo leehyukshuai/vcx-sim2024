@@ -1,8 +1,8 @@
 #include "Labs/4-OpenProj/CaseCollide.h"
-#include "Labs/Common/ImGuiHelper.h"
-#include "Engine/app.h"
-#include <imgui.h>
 #include "CaseCollide.h"
+#include "Engine/app.h"
+#include "Labs/Common/ImGuiHelper.h"
+#include <imgui.h>
 
 namespace VCX::Labs::OpenProj {
 
@@ -18,38 +18,49 @@ namespace VCX::Labs::OpenProj {
 
     void CaseCollide::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::DragFloat("Restitution", &_collisionSystem.c, 0.01f, 0.0f, 1.0f);
-            ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 1.0f);
-            ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
+            ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
+            ImGui::DragFloat("gravity", &_gravity, 0.01f, 0.0f, 10.0f, "%.2f");
+            ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 5.0f);
+            ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.01f, 5.0f);
             if (ImGui::Button("Reset")) {
                 resetScene();
             }
+            ImGui::SameLine();
+            if (ImGui::Button(! _pause ? "pause" : "start")) {
+                _pause = ! _pause;
+            }
+
+            ImGui::DragFloat3("Pos", glm::value_ptr(_player->rigidBody->position));
         }
     }
 
     Common::CaseRenderResult CaseCollide::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
         // apply mouse control first
         OnProcessMouseControl(_cameraManager.getMouseMove());
+        OnProcessKeyControl();
 
         const int substeps = 5;
-        float dt = Engine::GetDeltaTime();
-        float st = dt / substeps;
-
-        for (int t = 0; t < substeps; ++t) {
-            for (auto & c : _cylinders) {
-                c.rigidBody->applyTranslDamping(0.1f);
-                c.rigidBody->applyRotateDamping(0.1f);
-                c.rigidBody->apply(-_gravity * c.rigidBody->mass);
-                c.rigidBody->update(st);
-            }
-            _collisionSystem.collisionDetect();
-            _collisionSystem.collisionHandle();
-            for (auto & c : _cylinders) {
-                c.rigidBody->move(st);
+        // float     dt       = Engine::GetDeltaTime();
+        float     dt       = 0.03f;
+        float     st       = dt / substeps;
+        if (! _pause) {
+            for (int t = 0; t < substeps; ++t) {
+                for (auto rb : _rigidBodys) {
+                    rb->rigidBody->applyTranslDamping(_translationalDamping);
+                    rb->rigidBody->applyRotateDamping(_rotationalDamping);
+                    rb->rigidBody->applyGravity(_gravity);
+                    rb->rigidBody->update(st);
+                }
+                _collisionSystem.collisionDetect();
+                _collisionSystem.collisionHandle();
+                for (auto rb : _rigidBodys) {
+                    rb->rigidBody->move(st);
+                }
             }
         }
-        for (auto & c : _cylinders) {
-            c.updateBuffer();
+        for (auto rb : _rigidBodys) {
+            rb->updateBuffer();
         }
 
         // rendering
@@ -62,21 +73,18 @@ namespace VCX::Labs::OpenProj {
         gl_using(_frame);
         glEnable(GL_LINE_SMOOTH);
         glLineWidth(.5f);
-
-        glEnable(GL_DEPTH_TEST);
-        for (auto & c : _cylinders) {
-            _program.GetUniforms().SetByName("u_Color", c.renderItem.color);
-            c.renderItem.faceItem.Draw({ _program.Use() });
+        for (auto rb : _rigidBodys) {
+            rb->renderItem.drawFace(_program);
         }
-        _program.GetUniforms().SetByName("u_Color", _floor.renderItem.color);
-        _floor.renderItem.faceItem.Draw({ _program.Use() });
-        glDisable(GL_DEPTH_TEST);
-        _program.GetUniforms().SetByName("u_Color", glm::vec3(1, 1, 1));
-        for (auto & c : _cylinders) {
-            c.renderItem.lineItem.Draw({ _program.Use() });
+        for (auto sb : _staticBodys) {
+            sb->renderItem.drawFace(_program);
         }
-        _floor.renderItem.lineItem.Draw({ _program.Use() });
-
+        for (auto rb : _rigidBodys) {
+            rb->renderItem.drawLine(_program);
+        }
+        for (auto sb : _staticBodys) {
+            sb->renderItem.drawLine(_program);
+        }
         glLineWidth(1.f);
         glPointSize(1.f);
         glDisable(GL_LINE_SMOOTH);
@@ -95,31 +103,99 @@ namespace VCX::Labs::OpenProj {
 
     void CaseCollide::OnProcessMouseControl(glm::vec3 mouseDelta) {
         float movingScale = 8.0f;
-        _cylinders[0].rigidBody->applyTorque(movingScale * mouseDelta);
+        _player->rigidBody->applyTorque(movingScale * mouseDelta);
+    }
+
+    void CaseCollide::OnProcessKeyControl() {
+        float rs = 8.0f;
+        float ts = 10.0f;
+        if (ImGui::IsKeyDown(ImGuiKey_J)) {
+            _player->rigidBody->applyTorque({ -rs, 0, 0 });
+        }
+        if (ImGui::IsKeyDown(ImGuiKey_L)) {
+            _player->rigidBody->applyTorque({ rs, 0, 0 });
+        }
+        if (ImGui::IsKeyDown(ImGuiKey_I)) {
+            _player->rigidBody->applyTorque({ 0, 0, -rs });
+        }
+        if (ImGui::IsKeyDown(ImGuiKey_K)) {
+            _player->rigidBody->applyTorque({ 0, 0, rs });
+        }
+        if (ImGui::IsKeyDown(ImGuiKey_U)) {
+            _player->rigidBody->apply({ 0, ts, 0 });
+        }
+        if (ImGui::IsKeyDown(ImGuiKey_O)) {
+            _player->rigidBody->apply({ 0, -ts, 0 });
+        }
     }
 
     void CaseCollide::resetScene() {
-        _floor.boxBody.reset();
-        _floor.boxBody.dimension = glm::vec3(10, 1, 10);
-        _floor.rigidBody->isStatic = true;
-        _floor.renderItem.color = glm::vec3(0, 0.8, 0.9);
-        _floor.initialize();
+        std::srand(2);
+        auto randomFloat = []() {
+            return std::rand() * 1.0 / RAND_MAX;
+        };
+        auto randomColor = []() {
+            return glm::vec3(
+                std::rand() * 1.0 / RAND_MAX,
+                std::rand() * 1.0 / RAND_MAX,
+                std::rand() * 1.0 / RAND_MAX);
+        };
 
-        _cylinders.clear();
-        _cylinders.resize(3);
-        _cylinders[0].rigidBody->position = glm::vec3(0, 2, -0.8);
-        _cylinders[0].renderItem.color = glm::vec3(1, 0, 0);
-        _cylinders[0].initialize();
-        _cylinders[1].rigidBody->position = glm::vec3(0, 3.2, 0);
-        _cylinders[1].renderItem.color = glm::vec3(0, 1, 0);
-        _cylinders[1].initialize();
-        _cylinders[2].rigidBody->position = glm::vec3(0, 5, 0.2);
-        _cylinders[2].renderItem.color = glm::vec3(0, 0, 1);
-        _cylinders[2].initialize(); 
+        Box * floor                   = new Box(glm::vec3(10, 0.6f, 10));
+        Box * wall1                   = new Box(glm::vec3(10, 0.6f, 10));
+        Box * wall2                   = new Box(glm::vec3(10, 0.6f, 10));
+        Box * wall3                   = new Box(glm::vec3(10, 0.6f, 10));
+        Box * wall4                   = new Box(glm::vec3(10, 0.6f, 10));
+        floor->rigidBody->position    = glm::vec3(0, -1, 0);
+        wall1->rigidBody->position    = glm::vec3(-6, 2, 0);
+        wall1->rigidBody->orientation = glm::quat(glm::vec3(0, 0, -1.5));
+        wall2->rigidBody->position    = glm::vec3(6, 2, 0);
+        wall2->rigidBody->orientation = glm::quat(glm::vec3(0, 0, 1.5));
+        wall3->rigidBody->position    = glm::vec3(0, 2, 6);
+        wall3->rigidBody->orientation = glm::quat(glm::vec3(-1.5, 0, 0));
+        wall4->rigidBody->position    = glm::vec3(0, 2, -6);
+        wall4->rigidBody->orientation = glm::quat(glm::vec3(1.5, 0, 0));
 
-        _collisionSystem.items = std::vector<Object *>({
-            &_cylinders[0], &_cylinders[1], &_cylinders[2], &_floor
-        });
+        for (auto sb : _staticBodys) {
+            delete sb;
+        }
+        _staticBodys = std::vector<Object *>({ floor, wall1, wall2, wall3, wall4 });
+        for (auto sb : _staticBodys) {
+            sb->rigidBody->isStatic = true;
+            sb->renderItem.color    = randomColor();
+            sb->initialize();
+        }
+
+        Sphere * player = new Sphere(0.5f);
+        Sphere *   obs3 = new Sphere(0.8f);
+        Box *      obs4 = new Box(glm::vec3(1.0f));
+        obs3->rigidBody->position   = glm::vec3(-1, 2, -2);
+        obs4->rigidBody->position   = glm::vec3(-2, 2, 2);
+        player->rigidBody->position = glm::vec3(0, 2, 0);
+
+        std::vector<Sphere *> spheres(5);
+        for (int i = 0; i < spheres.size(); ++i) {
+            spheres[i] = new Sphere();
+
+            spheres[i]->rigidBody->position = glm::vec3(randomFloat() - 0.5, 5 + i * 1.2f, randomFloat() - 0.5);
+        }
+
+        _player = player;
+        for (auto rb : _rigidBodys) {
+            delete rb;
+        }
+        _rigidBodys = std::vector<Object *>({ player, obs3, obs4 });
+        for (int i = 0; i < spheres.size(); ++i) {
+            _rigidBodys.push_back(spheres[i]);
+        }
+        for (auto rb : _rigidBodys) {
+            rb->renderItem.color = randomColor();
+            rb->initialize();
+        }
+
+        _collisionSystem.items.clear();
+        for (auto sb : _staticBodys) _collisionSystem.items.push_back(sb);
+        for (auto rb : _rigidBodys) _collisionSystem.items.push_back(rb);
     }
 
 } // namespace VCX::Labs::OpenProj

@@ -23,6 +23,7 @@ namespace VCX::Labs::OpenProj {
         virtual void                     OnProcessInput(ImVec2 const & pos) override;
 
         void OnProcessMouseControl(glm::vec3 mourseDelta);
+        void OnProcessKeyControl();
 
         void resetScene();
 
@@ -32,10 +33,16 @@ namespace VCX::Labs::OpenProj {
         Engine::Camera                _camera { .Eye = glm::vec3(-3, 3, 3) };
         Common::OrbitCameraManager    _cameraManager;
 
-        glm::vec3 _gravity = glm::vec3(0, 2, 0);
+        bool _pause { true };
 
-        CollisionSystem       _collisionSystem;
-        std::vector<Cylinder> _cylinders;
-        Box                   _floor;
+        float _gravity              = 2.0f;
+        float _translationalDamping = 0.1f;
+        float _rotationalDamping    = 0.02f;
+
+        CollisionSystem _collisionSystem;
+
+        Sphere          *_player;
+        std::vector<Object*> _staticBodys;
+        std::vector<Object*> _rigidBodys;
     };
 } // namespace VCX::Labs::OpenProj

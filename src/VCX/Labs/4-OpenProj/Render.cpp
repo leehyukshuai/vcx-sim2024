@@ -29,6 +29,18 @@ namespace VCX::Labs::OpenProj {
         faceItem.UpdateVertexBuffer("position", span_bytes);
     }
 
+    void RenderItem::drawFace(Engine::GL::UniqueProgram & program) {
+        glEnable(GL_DEPTH_TEST);
+        program.GetUniforms().SetByName("u_Color", color);
+        faceItem.Draw({ program.Use() });
+    }
+
+    void RenderItem::drawLine(Engine::GL::UniqueProgram & program) {
+        glDisable(GL_DEPTH_TEST);
+        program.GetUniforms().SetByName("u_Color", glm::vec3(1, 1, 1));
+        lineItem.Draw({ program.Use() });
+    }
+
     Mesh Mesh::generateBoxMesh(glm::vec3 dim) {
         Mesh  ret;
         float x         = dim[0] / 2.0;
@@ -161,29 +173,25 @@ namespace VCX::Labs::OpenProj {
             }
         }
 
-        // Generate line indices for wireframe
-        for (int i = 0; i < precision; ++i) {
-            for (int j = 0; j < precision; ++j) {
-                int first  = (i * (precision + 1)) + j;
-                int second = first + precision + 1;
+        // Generate line indices for wireframe (latitude lines)
+        for (int i = 0; i <= precision; ++i) {
+            for (int j = 0; j <= precision; ++j) {
+                int index = i * (precision + 1) + j;
 
-                lineIndices.push_back(first);
-                lineIndices.push_back(first + 1);
-
-                lineIndices.push_back(first);
-                lineIndices.push_back(second);
-
-                if (j == precision - 1) {
-                    lineIndices.push_back(first + 1);
-                    lineIndices.push_back(second + 1);
+                // Longitude lines (around Y-axis)
+                if (j < precision) {
+                    lineIndices.push_back(index);
+                    lineIndices.push_back(index + 1);
                 }
-                if (i == precision - 1) {
-                    lineIndices.push_back(second);
-                    lineIndices.push_back(second + 1);
+
+                // Latitude lines (around X-axis and Z-axis)
+                if (i < precision) {
+                    lineIndices.push_back(index);
+                    lineIndices.push_back(index + precision + 1);
                 }
             }
         }
-
+        
         // Assign the generated data to the mesh
         ret.positions   = positions;
         ret.triIndices  = triIndices;

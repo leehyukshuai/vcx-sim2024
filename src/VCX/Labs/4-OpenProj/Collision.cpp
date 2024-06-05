@@ -1,5 +1,6 @@
 #include "Collision.h"
 #include "Object.h"
+#include <fcl/broadphase/broadphase_collision_manager.h>
 
 namespace VCX::Labs::OpenProj {
     CollisionItem::CollisionItem():
@@ -22,10 +23,29 @@ namespace VCX::Labs::OpenProj {
     }
 
     void CollisionSystem::collisionDetect() {
+        // fcl::DynamicAABBTreeCollisionManager<float> manager;
+        // std::vector<fcl::CollisionObject<float> *>  collisionObjects;
+        // for (int i = 0; i < items.size(); ++i) {
+        //     auto & object = items[i]->collisionItem.collisionObject;
+        //     collisionObjects.push_back(&object);
+        // }
+        // manager.registerObjects(collisionObjects);
+        // manager.setup();
+        // fcl::DefaultCollisionData<float> collision_data;
+        // collision_data.request.num_max_contacts = 10000;
+        // manager.collide(&collision_data, fcl::DefaultCollisionFunction<float>);
+        // std::vector<fcl::Contact<float>> fclContacts;
+        // collision_data.result.getContacts(fclContacts);
+        // for (auto const & contact : fclContacts) {
+        //     auto p1 = (Object *) contact.o1->getUserData();
+        //     auto p2 = (Object *) contact.o2->getUserData();
+        //     contacts.emplace_back(Contact(p1, p2, contact.pos, -contact.normal, contact.penetration_depth));
+        // }
         for (int i = 0; i < items.size(); ++i) {
             for (int j = i + 1; j < items.size(); ++j) {
                 auto const & b0 = items[i]->collisionItem.collisionObject;
                 auto const & b1 = items[j]->collisionItem.collisionObject;
+                if (! b0.getAABB().overlap(b1.getAABB())) continue;
                 // Compute collision -at most 8 contacts and return contact information.
                 fcl::CollisionRequest<float> collisionRequest(8, true);
                 fcl::CollisionResult<float>  collisionResult;
@@ -34,7 +54,9 @@ namespace VCX::Labs::OpenProj {
                 std::vector<fcl::Contact<float>> fclContacts;
                 collisionResult.getContacts(fclContacts);
                 for (auto const & contact : fclContacts) { // You can decide whether define your own Contact
-                    contacts.emplace_back(Contact(i, j, contact.pos, -contact.normal, contact.penetration_depth));
+                    auto p1 = (Object *) contact.o1->getUserData();
+                    auto p2 = (Object *) contact.o2->getUserData();
+                    contacts.emplace_back(Contact(p1, p2, contact.pos, -contact.normal, contact.penetration_depth));
                 }
             }
         }
@@ -42,8 +64,8 @@ namespace VCX::Labs::OpenProj {
 
     void CollisionSystem::collisionHandle() {
         for (auto const & contact : contacts) {
-            auto  a      = items[contact.id1]->rigidBody;
-            auto  b      = items[contact.id2]->rigidBody;
+            auto  a      = contact.p1->rigidBody;
+            auto  b      = contact.p2->rigidBody;
             auto  pai    = contact.pos - a->position;
             auto  pbi    = contact.pos - b->position;
             auto  vai    = glm::vec3(a->velocity + glm::cross(a->omega, contact.pos - a->position));
@@ -65,12 +87,12 @@ namespace VCX::Labs::OpenProj {
                     J = ((-(1.0f + c) * vrel) / (1.0f * mai + 1.0f * mbi + glm::dot(n, (Iainv * glm::cross(glm::cross(pai, n), pai) + Ibinv * glm::cross(glm::cross(pbi, n), pbi))))) * n;
                 }
                 if (collisionMethod == FRICTIONAL_IMPULSE) {
-                    auto      vreln     = vrel_n * n;
-                    auto      vrelt     = vrel - vreln;
-                    float     A         = std::max(1 - miu_T * (1 + miu_N) * glm::length(vreln) / glm::length(vrelt), 0.0f);
-                    auto      vreln_new = -miu_N * vreln;
-                    auto      vrelt_new = A * vrelt;
-                    auto      vrel_new  = vreln_new + vrelt_new;
+                    auto  vreln     = vrel_n * n;
+                    auto  vrelt     = vrel - vreln;
+                    float A         = std::max(1 - miu_T * (1 + miu_N) * glm::length(vreln) / glm::length(vrelt), 0.0f);
+                    auto  vreln_new = -miu_N * vreln;
+                    auto  vrelt_new = A * vrelt;
+                    auto  vrel_new  = vreln_new + vrelt_new;
 
                     auto crossProductMatrix = [](const glm::vec3 & v) { return glm::mat3(0, -v.z, v.y, v.z, 0, -v.x, -v.y, v.x, 0); };
 
@@ -88,17 +110,17 @@ namespace VCX::Labs::OpenProj {
                 a->angularMomentum += glm::cross(pai, J);
                 b->angularMomentum += glm::cross(pbi, -J);
             }
-            else {
-                // or just contact, we move them apart
-                if (a->isStatic && b->isStatic) continue;
-                bool  anyStatic = (a->isStatic || b->isStatic);
-                float ma        = a->mass;
-                float mb        = b->mass;
-                float partb     = anyStatic ? (a->isStatic ? 1 : 0) : ma / (ma + mb);
-                float parta     = anyStatic ? (a->isStatic ? 0 : 1) : mb / (ma + mb);
-                a->position += contact.normal * contact.depth * parta;
-                b->position -= contact.normal * contact.depth * partb;
-            }
+            // else {
+            //     // or just contact, we move them apart
+            //     if (a->isStatic && b->isStatic) continue;
+            //     bool  anyStatic = (a->isStatic || b->isStatic);
+            //     float ma        = a->mass;
+            //     float mb        = b->mass;
+            //     float partb     = anyStatic ? (a->isStatic ? 1 : 0) : ma / (ma + mb);
+            //     float parta     = anyStatic ? (a->isStatic ? 0 : 1) : mb / (ma + mb);
+            //     a->position += contact.normal * contact.depth * parta;
+            //     b->position -= contact.normal * contact.depth * partb;
+            // }
         }
         contacts.clear();
     }

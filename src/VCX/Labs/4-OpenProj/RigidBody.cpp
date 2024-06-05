@@ -78,6 +78,9 @@ namespace VCX::Labs::OpenProj {
             applyTorque(-rotateDampingFactor * glm::length2(omega) * normalized);
         }
     }
+    void RigidBody::applyGravity(float gravity) {
+        apply(glm::vec3(0, -gravity * mass, 0));
+    }
     void BoxBody::setInertia() {
         inertia[0][0] = mass / 12.0 * (dimension[1] * dimension[1] + dimension[2] * dimension[2]);
         inertia[1][1] = mass / 12.0 * (dimension[0] * dimension[0] + dimension[2] * dimension[2]);

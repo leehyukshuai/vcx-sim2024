@@ -3,6 +3,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include "Engine/GL/RenderItem.h"
+#include "Engine/GL/Program.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -33,6 +34,9 @@ namespace VCX::Labs::OpenProj {
         RenderItem(const Mesh & mesh);
         void initialize(const Mesh & mesh);
         void updateBuffer(const glm::vec3 & translation, const glm::quat & rotation);
+
+        void drawFace(Engine::GL::UniqueProgram &program);
+        void drawLine(Engine::GL::UniqueProgram &program);
     };
 
 } // namespace VCX::Labs::OpenProj

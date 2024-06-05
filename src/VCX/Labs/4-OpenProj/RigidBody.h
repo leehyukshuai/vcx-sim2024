@@ -27,8 +27,9 @@ namespace VCX::Labs::OpenProj {
         virtual void reset();
         void         resetForces();
         void         updateBuffer();
-        virtual void applyTranslDamping(float translDampingFactor);
-        virtual void applyRotateDamping(float rotateDampingFactor);
+        void         applyTranslDamping(float translDampingFactor);
+        void         applyRotateDamping(float rotateDampingFactor);
+        void         applyGravity(float gravity);
         void         apply(glm::vec3 force, glm::vec3 point = glm::vec3(0, 0, 0));
         void         applyTorque(glm::vec3 torque);
         // update velocity and omega

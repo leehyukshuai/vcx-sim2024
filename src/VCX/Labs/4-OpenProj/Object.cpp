@@ -8,10 +8,6 @@ namespace VCX::Labs::OpenProj {
 
     Box::Box(const glm::vec3 & dim):
         Object(&boxBody) {
-        initialize(dim);
-    }
-
-    void Box::initialize(const glm::vec3 & dim) {
         boxBody.dimension = dim;
         initialize();
     }
@@ -21,48 +17,43 @@ namespace VCX::Labs::OpenProj {
         auto      mesh = Mesh::generateBoxMesh(dim);
         renderItem.initialize(mesh);
         auto geom = std::make_shared<fcl::Box<float>>(dim[0], dim[1], dim[2]);
+        geom.get()->setUserData(this);
         collisionItem.initialize(geom);
         rigidBody->updateBuffer();
         updateBuffer();
     }
 
-    Cylinder::Cylinder(float radius, float height, int precision):
+    Cylinder::Cylinder(float radius, float height):
         Object(&cylinderBody) {
-        initialize(radius, height, precision);
-    }
-
-    void Cylinder::initialize(float radius, float height, int precision) {
         cylinderBody.radius = radius;
         cylinderBody.height = height;
-        initialize(precision);
+        initialize();
     }
 
-    void Cylinder::initialize(int precision) {
+    void Cylinder::initialize() {
         float radius = cylinderBody.radius;
         float height = cylinderBody.height;
-        auto  mesh   = Mesh::generateCylinderMesh(radius, height, precision);
+        auto  mesh   = Mesh::generateCylinderMesh(radius, height, 32);
         renderItem.initialize(mesh);
         auto geom = std::make_shared<fcl::Cylinder<float>>(radius, height);
+        geom.get()->setUserData(this);
         collisionItem.initialize(geom);
         rigidBody->updateBuffer();
         updateBuffer();
     }
 
-    Sphere::Sphere(float radius, int precision):
+    Sphere::Sphere(float radius):
         Object(&sphereBody) {
-        initialize(precision);
-    }
-
-    void Sphere::initialize(float radius, int precision) {
         sphereBody.radius = radius;
-        initialize(precision);
+        initialize();
     }
 
-    void Sphere::initialize(int precision) {
+    void Sphere::initialize() {
         float radius = sphereBody.radius;
-        auto  mesh   = Mesh::generateSphereMesh(radius, precision);
+        auto  mesh   = Mesh::generateSphereMesh(radius, 32);
         renderItem.initialize(mesh);
         auto geom = std::make_shared<fcl::Sphere<float>>(radius);
+        geom.get()->setUserData(this);
         collisionItem.initialize(geom);
         rigidBody->updateBuffer();
         updateBuffer();
