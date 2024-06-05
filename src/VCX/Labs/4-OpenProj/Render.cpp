@@ -1,4 +1,5 @@
 #include "Render.h"
+#include "Object.h"
 
 namespace VCX::Labs::OpenProj {
     RenderItem::RenderItem():
@@ -29,19 +30,7 @@ namespace VCX::Labs::OpenProj {
         faceItem.UpdateVertexBuffer("position", span_bytes);
     }
 
-    void RenderItem::drawFace(Engine::GL::UniqueProgram & program) {
-        glEnable(GL_DEPTH_TEST);
-        program.GetUniforms().SetByName("u_Color", color);
-        faceItem.Draw({ program.Use() });
-    }
-
-    void RenderItem::drawLine(Engine::GL::UniqueProgram & program) {
-        glDisable(GL_DEPTH_TEST);
-        program.GetUniforms().SetByName("u_Color", glm::vec3(1, 1, 1));
-        lineItem.Draw({ program.Use() });
-    }
-
-    Mesh Mesh::generateBoxMesh(glm::vec3 dim) {
+    Mesh Mesh::generateBoxMesh(glm::vec3 dim, int precision) {
         Mesh  ret;
         float x         = dim[0] / 2.0;
         float y         = dim[1] / 2.0;
@@ -191,12 +180,33 @@ namespace VCX::Labs::OpenProj {
                 }
             }
         }
-        
+
         // Assign the generated data to the mesh
         ret.positions   = positions;
         ret.triIndices  = triIndices;
         ret.lineIndices = lineIndices;
 
         return ret;
+    }
+    void RenderSystem::render(Engine::GL::UniqueRenderFrame & frame, Engine::GL::UniqueProgram & program) {
+        gl_using(frame);
+        glEnable(GL_LINE_SMOOTH);
+        glLineWidth(.5f);
+        glEnable(GL_DEPTH_TEST);
+        for (auto obj : items) {
+            auto color = obj->renderItem.color;
+            program.GetUniforms().SetByName("u_Color", color);
+            obj->renderItem.faceItem.Draw({ program.Use() });
+        }
+        if (xrayed) glDisable(GL_DEPTH_TEST);
+        for (auto obj : items) {
+            auto color = obj->renderItem.color;
+            if (xrayed) program.GetUniforms().SetByName("u_Color", glm::vec3(1));
+            else program.GetUniforms().SetByName("u_Color", color * 0.5f);
+            obj->renderItem.lineItem.Draw({ program.Use() });
+        }
+        glLineWidth(1.f);
+        glPointSize(1.f);
+        glDisable(GL_LINE_SMOOTH);
     }
 } // namespace VCX::Labs::OpenProj

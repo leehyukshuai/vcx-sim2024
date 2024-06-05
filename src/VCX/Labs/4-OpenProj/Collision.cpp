@@ -84,7 +84,7 @@ namespace VCX::Labs::OpenProj {
                 auto      Ib    = rotb * b->inertia * glm::transpose(rotb);
                 auto      Ibinv = b->isStatic ? glm::mat3(0) : glm::inverse(Ib);
                 if (collisionMethod == FRICTIONLESS_IMPULSE) {
-                    J = ((-(1.0f + c) * vrel) / (1.0f * mai + 1.0f * mbi + glm::dot(n, (Iainv * glm::cross(glm::cross(pai, n), pai) + Ibinv * glm::cross(glm::cross(pbi, n), pbi))))) * n;
+                    J = ((-(1.0f + c) * vrel_n) / (1.0f * mai + 1.0f * mbi + glm::dot(n, (Iainv * glm::cross(glm::cross(pai, n), pai) + Ibinv * glm::cross(glm::cross(pbi, n), pbi))))) * n;
                 }
                 if (collisionMethod == FRICTIONAL_IMPULSE) {
                     auto  vreln     = vrel_n * n;
@@ -110,17 +110,6 @@ namespace VCX::Labs::OpenProj {
                 a->angularMomentum += glm::cross(pai, J);
                 b->angularMomentum += glm::cross(pbi, -J);
             }
-            // else {
-            //     // or just contact, we move them apart
-            //     if (a->isStatic && b->isStatic) continue;
-            //     bool  anyStatic = (a->isStatic || b->isStatic);
-            //     float ma        = a->mass;
-            //     float mb        = b->mass;
-            //     float partb     = anyStatic ? (a->isStatic ? 1 : 0) : ma / (ma + mb);
-            //     float parta     = anyStatic ? (a->isStatic ? 0 : 1) : mb / (ma + mb);
-            //     a->position += contact.normal * contact.depth * parta;
-            //     b->position -= contact.normal * contact.depth * partb;
-            // }
         }
         contacts.clear();
     }

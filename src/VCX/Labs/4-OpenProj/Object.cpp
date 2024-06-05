@@ -14,7 +14,7 @@ namespace VCX::Labs::OpenProj {
 
     void Box::initialize() {
         glm::vec3 dim  = boxBody.dimension;
-        auto      mesh = Mesh::generateBoxMesh(dim);
+        auto      mesh = Mesh::generateBoxMesh(dim, 16);
         renderItem.initialize(mesh);
         auto geom = std::make_shared<fcl::Box<float>>(dim[0], dim[1], dim[2]);
         geom.get()->setUserData(this);
@@ -33,7 +33,7 @@ namespace VCX::Labs::OpenProj {
     void Cylinder::initialize() {
         float radius = cylinderBody.radius;
         float height = cylinderBody.height;
-        auto  mesh   = Mesh::generateCylinderMesh(radius, height, 32);
+        auto  mesh   = Mesh::generateCylinderMesh(radius, height, 16);
         renderItem.initialize(mesh);
         auto geom = std::make_shared<fcl::Cylinder<float>>(radius, height);
         geom.get()->setUserData(this);

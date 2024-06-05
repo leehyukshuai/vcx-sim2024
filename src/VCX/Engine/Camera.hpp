@@ -6,7 +6,7 @@ namespace VCX::Engine {
     struct Camera {
         float     Fovy   { 60.f };
         float     ZNear  { 0.01f };
-        float     ZFar   { 100.f };
+        float     ZFar   { 1000.f };
         glm::vec3 Eye    { 0, 0, 1 };
         glm::vec3 Target { 0, 0, 0 };
         glm::vec3 Up     { 0, 1, 0 };

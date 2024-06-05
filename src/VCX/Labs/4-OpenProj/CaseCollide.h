@@ -40,9 +40,10 @@ namespace VCX::Labs::OpenProj {
         float _rotationalDamping    = 0.02f;
 
         CollisionSystem _collisionSystem;
+        RenderSystem _renderSystem;
 
-        Sphere          *_player;
-        std::vector<Object*> _staticBodys;
-        std::vector<Object*> _rigidBodys;
+        Object *              _player;
+        std::vector<Object *> _staticBodys;
+        std::vector<Object *> _rigidBodys;
     };
 } // namespace VCX::Labs::OpenProj

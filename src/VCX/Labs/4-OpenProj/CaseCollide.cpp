@@ -18,20 +18,28 @@ namespace VCX::Labs::OpenProj {
 
     void CaseCollide::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
+            const char * items[]     = { "Frictionless Impulse", "Frictional Impulse" };
+            int          currentItem = static_cast<int>(_collisionSystem.collisionMethod);
+            if (ImGui::Combo("Collision Method", &currentItem, items, IM_ARRAYSIZE(items))) {
+                _collisionSystem.collisionMethod = static_cast<CollisionSystem::CollisionHandleMethod>(currentItem);
+            }
+
             ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("gravity", &_gravity, 0.01f, 0.0f, 10.0f, "%.2f");
+            ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 5.0f);
             ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.01f, 5.0f);
+            
+            ImGui::Checkbox("xray", &_renderSystem.xrayed);
             if (ImGui::Button("Reset")) {
                 resetScene();
+                _pause = true;
             }
             ImGui::SameLine();
             if (ImGui::Button(! _pause ? "pause" : "start")) {
                 _pause = ! _pause;
             }
-
-            ImGui::DragFloat3("Pos", glm::value_ptr(_player->rigidBody->position));
         }
     }
 
@@ -42,8 +50,8 @@ namespace VCX::Labs::OpenProj {
 
         const int substeps = 5;
         // float     dt       = Engine::GetDeltaTime();
-        float     dt       = 0.03f;
-        float     st       = dt / substeps;
+        float dt = 0.03f;
+        float st = dt / substeps;
         if (! _pause) {
             for (int t = 0; t < substeps; ++t) {
                 for (auto rb : _rigidBodys) {
@@ -64,30 +72,11 @@ namespace VCX::Labs::OpenProj {
         }
 
         // rendering
-        _frame.Resize(desiredSize);
-
         _cameraManager.Update(_camera);
         _program.GetUniforms().SetByName("u_Projection", _camera.GetProjectionMatrix((float(desiredSize.first) / desiredSize.second)));
         _program.GetUniforms().SetByName("u_View", _camera.GetViewMatrix());
-
-        gl_using(_frame);
-        glEnable(GL_LINE_SMOOTH);
-        glLineWidth(.5f);
-        for (auto rb : _rigidBodys) {
-            rb->renderItem.drawFace(_program);
-        }
-        for (auto sb : _staticBodys) {
-            sb->renderItem.drawFace(_program);
-        }
-        for (auto rb : _rigidBodys) {
-            rb->renderItem.drawLine(_program);
-        }
-        for (auto sb : _staticBodys) {
-            sb->renderItem.drawLine(_program);
-        }
-        glLineWidth(1.f);
-        glPointSize(1.f);
-        glDisable(GL_LINE_SMOOTH);
+        _frame.Resize(desiredSize);
+        _renderSystem.render(_frame, _program);
 
         return Common::CaseRenderResult {
             .Fixed     = false,
@@ -166,27 +155,35 @@ namespace VCX::Labs::OpenProj {
             sb->initialize();
         }
 
-        Sphere * player = new Sphere(0.5f);
-        Sphere *   obs3 = new Sphere(0.8f);
-        Box *      obs4 = new Box(glm::vec3(1.0f));
-        obs3->rigidBody->position   = glm::vec3(-1, 2, -2);
-        obs4->rigidBody->position   = glm::vec3(-2, 2, 2);
-        player->rigidBody->position = glm::vec3(0, 2, 0);
-
-        std::vector<Sphere *> spheres(5);
-        for (int i = 0; i < spheres.size(); ++i) {
-            spheres[i] = new Sphere();
-
-            spheres[i]->rigidBody->position = glm::vec3(randomFloat() - 0.5, 5 + i * 1.2f, randomFloat() - 0.5);
-        }
-
-        _player = player;
         for (auto rb : _rigidBodys) {
             delete rb;
         }
-        _rigidBodys = std::vector<Object *>({ player, obs3, obs4 });
-        for (int i = 0; i < spheres.size(); ++i) {
-            _rigidBodys.push_back(spheres[i]);
+        _rigidBodys.clear();
+        for (int i = 0; i < 20; ++i) {
+            if (i % 2) {
+                float r = 1.0f + randomFloat() * 1.5f;
+                float x = randomFloat() - 0.5;
+                float y = 10 + i * 8;
+                float z = randomFloat() - 0.5;
+
+                Sphere * sphere             = new Sphere(r);
+                sphere->rigidBody->position = glm::vec3(x, y, z);
+                _rigidBodys.push_back(sphere);
+            } else {
+                float dx = 1.0f + randomFloat() * 4.0f;
+                float dy = 1.0f + randomFloat() * 4.0f;
+                float dz = 1.0f + randomFloat() * 4.0f;
+                float x  = randomFloat() - 0.5;
+                float y  = 10 + i * 8;
+                float z  = randomFloat() - 0.5;
+
+                Box * box                = new Box(glm::vec3(dx, dy, dz));
+                box->rigidBody->position = glm::vec3(x, y, z);
+                _rigidBodys.push_back(box);
+            }
+            if (i == 0) {
+                _player = _rigidBodys.back();
+            }
         }
         for (auto rb : _rigidBodys) {
             rb->renderItem.color = randomColor();
@@ -196,6 +193,9 @@ namespace VCX::Labs::OpenProj {
         _collisionSystem.items.clear();
         for (auto sb : _staticBodys) _collisionSystem.items.push_back(sb);
         for (auto rb : _rigidBodys) _collisionSystem.items.push_back(rb);
+        _renderSystem.items.clear();
+        for (auto sb : _staticBodys) _renderSystem.items.push_back(sb);
+        for (auto rb : _rigidBodys) _renderSystem.items.push_back(rb);
     }
 
 } // namespace VCX::Labs::OpenProj
