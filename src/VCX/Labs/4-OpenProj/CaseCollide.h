@@ -6,7 +6,6 @@
 #include "Labs/Common/ICase.h"
 #include "Labs/Common/ImageRGB.h"
 #include "Labs/Common/OrbitCameraManager.h"
-
 #include "Collision.h"
 #include "Object.h"
 
@@ -28,7 +27,6 @@ namespace VCX::Labs::OpenProj {
         void resetScene();
 
     private:
-        Engine::GL::UniqueProgram     _program;
         Engine::GL::UniqueRenderFrame _frame;
         Engine::Camera                _camera { .Eye = glm::vec3(-3, 3, 3) };
         Common::OrbitCameraManager    _cameraManager;

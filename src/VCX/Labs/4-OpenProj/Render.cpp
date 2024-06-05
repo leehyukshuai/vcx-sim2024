@@ -188,10 +188,13 @@ namespace VCX::Labs::OpenProj {
 
         return ret;
     }
-    void RenderSystem::render(Engine::GL::UniqueRenderFrame & frame, Engine::GL::UniqueProgram & program) {
-        gl_using(frame);
-        glEnable(GL_LINE_SMOOTH);
-        glLineWidth(.5f);
+    RenderSystem::RenderSystem():
+        program(
+            Engine::GL::UniqueProgram({ Engine::GL::SharedShader("assets/shaders/sflat.vert"),
+                                        Engine::GL::SharedShader("assets/shaders/sflat.frag") })) {
+    }
+    void RenderSystem::draw(glm::mat4 cameraTransform) {
+        program.GetUniforms().SetByName("u_Transform", cameraTransform);
         glEnable(GL_DEPTH_TEST);
         for (auto obj : items) {
             auto color = obj->renderItem.color;
@@ -205,8 +208,5 @@ namespace VCX::Labs::OpenProj {
             else program.GetUniforms().SetByName("u_Color", color * 0.5f);
             obj->renderItem.lineItem.Draw({ program.Use() });
         }
-        glLineWidth(1.f);
-        glPointSize(1.f);
-        glDisable(GL_LINE_SMOOTH);
     }
 } // namespace VCX::Labs::OpenProj

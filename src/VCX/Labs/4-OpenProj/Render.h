@@ -2,9 +2,9 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 
-#include "Engine/GL/RenderItem.h"
-#include "Engine/GL/Program.h"
 #include "Engine/GL/Frame.hpp"
+#include "Engine/GL/Program.h"
+#include "Engine/GL/RenderItem.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -41,9 +41,13 @@ namespace VCX::Labs::OpenProj {
 
     class RenderSystem {
     public:
-        std::vector<Object *> items;
+        Engine::GL::UniqueProgram program;
+        std::vector<Object *>     items;
+
         bool xrayed;
-        void render(Engine::GL::UniqueRenderFrame &frame, Engine::GL::UniqueProgram &program);
+
+        RenderSystem();
+        void draw(glm::mat4 cameraTransform);
     };
 
 } // namespace VCX::Labs::OpenProj

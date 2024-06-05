@@ -6,10 +6,7 @@
 
 namespace VCX::Labs::OpenProj {
 
-    CaseCollide::CaseCollide():
-        _program(
-            Engine::GL::UniqueProgram({ Engine::GL::SharedShader("assets/shaders/flat.vert"),
-                                        Engine::GL::SharedShader("assets/shaders/flat.frag") })) {
+    CaseCollide::CaseCollide() {
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
 
@@ -30,7 +27,7 @@ namespace VCX::Labs::OpenProj {
             ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 5.0f);
             ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.01f, 5.0f);
-            
+
             ImGui::Checkbox("xray", &_renderSystem.xrayed);
             if (ImGui::Button("Reset")) {
                 resetScene();
@@ -44,7 +41,7 @@ namespace VCX::Labs::OpenProj {
     }
 
     Common::CaseRenderResult CaseCollide::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
-        // apply mouse control first
+        // apply control first
         OnProcessMouseControl(_cameraManager.getMouseMove());
         OnProcessKeyControl();
 
@@ -71,12 +68,20 @@ namespace VCX::Labs::OpenProj {
             rb->updateBuffer();
         }
 
-        // rendering
+        // camera
         _cameraManager.Update(_camera);
-        _program.GetUniforms().SetByName("u_Projection", _camera.GetProjectionMatrix((float(desiredSize.first) / desiredSize.second)));
-        _program.GetUniforms().SetByName("u_View", _camera.GetViewMatrix());
+        float aspect          = float(desiredSize.first) / desiredSize.second;
+        auto  cameraTransform = _camera.GetTransformationMatrix(aspect);
+
+        // rendering
         _frame.Resize(desiredSize);
-        _renderSystem.render(_frame, _program);
+        gl_using(_frame);
+        glEnable(GL_LINE_SMOOTH);
+        glLineWidth(.5f);
+        _renderSystem.draw(cameraTransform);
+        glLineWidth(1.f);
+        glPointSize(1.f);
+        glDisable(GL_LINE_SMOOTH);
 
         return Common::CaseRenderResult {
             .Fixed     = false,
