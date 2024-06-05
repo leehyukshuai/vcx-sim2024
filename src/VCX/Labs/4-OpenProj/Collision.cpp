@@ -113,7 +113,18 @@ namespace VCX::Labs::OpenProj {
                 b->velocity -= J * mbi;
                 a->angularMomentum += glm::cross(pai, J);
                 b->angularMomentum += glm::cross(pbi, -J);
+            } else if (solveContact) {
+                // or just contact, we move them apart
+                if (a->isStatic && b->isStatic) continue;
+                bool  anyStatic = (a->isStatic || b->isStatic);
+                float ma        = a->mass;
+                float mb        = b->mass;
+                float partb     = anyStatic ? (a->isStatic ? 1 : 0) : ma / (ma + mb);
+                float parta     = anyStatic ? (a->isStatic ? 0 : 1) : mb / (ma + mb);
+                a->position += contact.normal * contact.depth * parta;
+                b->position -= contact.normal * contact.depth * partb;
             }
+
         }
         contacts.clear();
     }
