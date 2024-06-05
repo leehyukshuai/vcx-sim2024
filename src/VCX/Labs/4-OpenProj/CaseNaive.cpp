@@ -1,5 +1,7 @@
 #include "Labs/4-OpenProj/CaseNaive.h"
 #include "Labs/Common/ImGuiHelper.h"
+#include "Engine/app.h"
+#include <imgui.h>
 
 namespace VCX::Labs::OpenProj {
 
@@ -13,12 +15,28 @@ namespace VCX::Labs::OpenProj {
 
     void CaseNaive::OnSetupPropsUI() {
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
+            bool recompute = false;
+            float *radius = &_cylinder.cylinderBody.radius;
+            float *height = &_cylinder.cylinderBody.height;
+            recompute |= ImGui::DragFloat("Radius", radius, 0.01f, 0.5f, 10.f);
+            recompute |= ImGui::DragFloat("Height", height, 0.01f, 0.5f, 10.f);
+            if (recompute) {
+                _cylinder.initialize(*radius, *height);
+            }
         }
     }
 
     Common::CaseRenderResult CaseNaive::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
         // apply mouse control first
         OnProcessMouseControl(_cameraManager.getMouseMove());
+
+        // damping
+        _cylinder.cylinderBody.applyTranslDamping(0.1f);
+        _cylinder.cylinderBody.applyRotateDamping(0.1f);
+        _cylinder.cylinderBody.update(Engine::GetDeltaTime());
+        _cylinder.cylinderBody.move(Engine::GetDeltaTime());
+
+        _cylinder.renderItem.updateBuffer(_cylinder.cylinderBody.position, _cylinder.cylinderBody.orientation);
 
         // rendering
         _frame.Resize(desiredSize);
@@ -53,7 +71,8 @@ namespace VCX::Labs::OpenProj {
     }
 
     void CaseNaive::OnProcessMouseControl(glm::vec3 mouseDelta) {
-        float movingScale = 0.1f;
+        float movingScale = 8.0f;
+        _cylinder.cylinderBody.applyTorque(movingScale * mouseDelta);
     }
 
 } // namespace VCX::Labs::OpenProj

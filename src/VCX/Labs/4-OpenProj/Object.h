@@ -13,14 +13,17 @@ namespace VCX::Labs::OpenProj {
 
         Object(RigidBody * bodyPtr):
             rigidBody(bodyPtr) {}
+        
+        void updateBuffer();
     };
 
     class Box : public Object {
     public:
         BoxBody boxBody;
 
-        Box(glm::vec3 dim = glm::vec3(1, 1, 1));
+        Box(const glm::vec3 & dim = glm::vec3(1, 1, 1));
         void initialize(const glm::vec3 & dim);
+        void initialize();
     };
 
     class Cylinder : public Object {
@@ -28,7 +31,8 @@ namespace VCX::Labs::OpenProj {
         CylinderBody cylinderBody;
 
         Cylinder(float radius = 0.5f, float height = 1.0f, int precision = 32);
-        void initialize(float radius, float height, int precision);
+        void initialize(float radius, float height, int precision = 32);
+        void initialize(int precision = 32);
     };
 
 } // namespace VCX::Labs::OpenProj
