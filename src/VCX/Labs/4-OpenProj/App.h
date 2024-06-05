@@ -2,6 +2,7 @@
 
 #include "CaseCollide.h"
 #include "CaseNaive.h"
+#include "CaseCar.h"
 #include "Engine/app.h"
 #include "Labs/Common/UI.h"
 #include <vector>
@@ -13,10 +14,11 @@ namespace VCX::Labs::OpenProj {
 
         CaseNaive   _caseNaive;
         CaseCollide _caseCollide;
+        CaseCar _caseCar;
 
-        std::size_t _caseId = 1;
+        std::size_t _caseId = 2;
 
-        std::vector<std::reference_wrapper<Common::ICase>> _cases = { _caseNaive, _caseCollide };
+        std::vector<std::reference_wrapper<Common::ICase>> _cases = { _caseNaive, _caseCollide, _caseCar };
 
     public:
         App();
