@@ -3,11 +3,12 @@
 namespace VCX::Labs::OpenProj {
     Car::Car() { reset(); }
     std::vector<Object *> Car::objects() {
-        return std::vector<Object *>({ &wheels[0], &wheels[1], &wheels[2], &wheels[3] });
+        return std::vector<Object *>({ &body, &wheels[0], &wheels[1], &wheels[2], &wheels[3] });
     }
 
     void Car::reset() {
         body.boxBody.reset();
+        body.boxBody.density   = 0.3f;
         body.boxBody.dimension = glm::vec3(8, 3, 5);
         body.boxBody.position  = glm::vec3(0, 3.7, 0);
         body.renderItem.color  = glm::vec3(0.7f, 0.3f, 0.9f);

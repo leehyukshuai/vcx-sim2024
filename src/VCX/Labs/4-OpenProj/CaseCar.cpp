@@ -10,8 +10,6 @@ namespace VCX::Labs::OpenProj {
         _cameraManager.Save(_camera);
         // higher miu_N can reduce penetrations
         _collisionSystem.miu_N = 0.8f;
-        // solve contact between car body and wheels
-        _collisionSystem.solveContact = true;
         resetScene();
     }
 
@@ -80,7 +78,7 @@ namespace VCX::Labs::OpenProj {
                 }
             }
         }
-        
+
         // rendering
         _cameraManager.Update(_camera);
         float aspect          = float(desiredSize.first) / desiredSize.second;
