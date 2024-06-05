@@ -5,10 +5,7 @@
 
 namespace VCX::Labs::OpenProj {
 
-    CaseCar::CaseCar():
-        _program(
-            Engine::GL::UniqueProgram({ Engine::GL::SharedShader("assets/shaders/flat.vert"),
-                                        Engine::GL::SharedShader("assets/shaders/flat.frag") })) {
+    CaseCar::CaseCar() {
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
 
@@ -45,9 +42,17 @@ namespace VCX::Labs::OpenProj {
     void CaseCar::OnProcessMouseControl(glm::vec3 mouseDelta) {
     }
 
+    void CaseCar::OnProcessKeyControl() {
+        keyMove[0] = ImGui::IsKeyDown(ImGuiKey_I);
+        keyMove[1] = ImGui::IsKeyDown(ImGuiKey_J);
+        keyMove[2] = ImGui::IsKeyDown(ImGuiKey_K);
+        keyMove[3] = ImGui::IsKeyDown(ImGuiKey_L);
+    }
+
     Common::CaseRenderResult CaseCar::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
-        // apply mouse control first
+        // apply control first
         OnProcessMouseControl(_cameraManager.getMouseMove());
+        OnProcessKeyControl();
 
         auto objs = _car.objects();
 
@@ -57,7 +62,7 @@ namespace VCX::Labs::OpenProj {
         float st = dt / substeps;
         if (! _pause) {
             for (int t = 0; t < substeps; ++t) {
-                _car.handleUserInput();
+                _car.move(keyMove);
                 for (auto & obj : objs) {
                     obj->rigidBody->applyTranslDamping(_translationalDamping);
                     obj->rigidBody->applyRotateDamping(_rotationalDamping);
@@ -66,6 +71,7 @@ namespace VCX::Labs::OpenProj {
                 }
                 _collisionSystem.collisionDetect();
                 _collisionSystem.collisionHandle();
+                _car.rigidify();
                 for (auto & obj : objs) {
                     obj->rigidBody->move(st);
                 }
