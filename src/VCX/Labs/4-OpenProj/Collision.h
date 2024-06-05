@@ -34,8 +34,7 @@ namespace VCX::Labs::OpenProj {
     public:
         std::vector<Object *> items;
 
-        // this is an exprimental feature, if use this, please disable substeps
-        bool solveContact { false };
+        bool solveContact { true };
 
         float c     = 0.6f; // FRICTIONLESS_IMPULSE
         float miu_N = 0.4f; // FRICTIONAL_IMPULSE
