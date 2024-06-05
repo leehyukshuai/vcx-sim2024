@@ -21,7 +21,7 @@ namespace VCX::Labs::OpenProj {
             recompute |= ImGui::DragFloat("Radius", radius, 0.01f, 0.5f, 10.f);
             recompute |= ImGui::DragFloat("Height", height, 0.01f, 0.5f, 10.f);
             if (recompute) {
-                _cylinder = Cylinder();
+                _cylinder = Cylinder(*radius, *height);
                 _cylinder.initialize();
             }
         }
