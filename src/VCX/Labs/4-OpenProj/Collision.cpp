@@ -43,6 +43,9 @@ namespace VCX::Labs::OpenProj {
         //     auto p2 = (Object *) contact.o2->getUserData();
         //     contacts.emplace_back(Contact(p1, p2, contact.pos, -contact.normal, contact.penetration_depth));
         // }
+        for (auto & obj : items) {
+            obj->updateCollisionBuffer();
+        }
         for (int i = 0; i < items.size(); ++i) {
             for (int j = i + 1; j < items.size(); ++j) {
                 if (items[i]->collisionItem.mask != items[j]->collisionItem.mask) continue;

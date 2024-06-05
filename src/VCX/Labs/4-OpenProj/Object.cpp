@@ -1,9 +1,17 @@
 #include "Object.h"
 
 namespace VCX::Labs::OpenProj {
-    void Object::updateBuffer() {
+    void Object::updateRenderBuffer() {
         renderItem.updateBuffer(rigidBody->position, rigidBody->orientation);
+    }
+
+    void Object::updateCollisionBuffer() {
         collisionItem.updateBuffer(rigidBody->position, rigidBody->orientation);
+    }
+    
+    void Object::updateBuffer() {
+        updateRenderBuffer();
+        updateCollisionBuffer();
     }
 
     Box::Box(const glm::vec3 & dim):

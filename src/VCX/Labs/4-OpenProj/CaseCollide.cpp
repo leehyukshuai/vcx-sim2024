@@ -64,9 +64,6 @@ namespace VCX::Labs::OpenProj {
                 }
             }
         }
-        for (auto rb : _rigidBodys) {
-            rb->updateBuffer();
-        }
 
         // camera
         _cameraManager.Update(_camera);

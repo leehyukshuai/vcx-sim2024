@@ -14,6 +14,8 @@ namespace VCX::Labs::OpenProj {
         Object(RigidBody * bodyPtr):
             rigidBody(bodyPtr) {}
         
+        void updateRenderBuffer();
+        void updateCollisionBuffer();
         void updateBuffer();
         virtual void initialize() = 0;
     };

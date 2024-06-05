@@ -194,6 +194,9 @@ namespace VCX::Labs::OpenProj {
                                         Engine::GL::SharedShader("assets/shaders/sflat.frag") })) {
     }
     void RenderSystem::draw(glm::mat4 cameraTransform) {
+        for (auto &obj : items) {
+            obj->updateRenderBuffer();
+        }
         program.GetUniforms().SetByName("u_Transform", cameraTransform);
         glEnable(GL_DEPTH_TEST);
         for (auto obj : items) {
