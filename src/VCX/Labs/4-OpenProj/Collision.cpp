@@ -7,12 +7,14 @@ namespace VCX::Labs::OpenProj {
         collisionObject(std::make_shared<fcl::Box<float>>(1.0, 1.0, 1.0)) {
     }
 
-    CollisionItem::CollisionItem(const std::shared_ptr<fcl::CollisionGeometry<float>> & geom):
+    CollisionItem::CollisionItem(const std::shared_ptr<fcl::CollisionGeometry<float>> & geom, int mask):
         collisionObject(fcl::CollisionObject<float>(geom)) {
+        this->mask = mask;
     }
 
-    void CollisionItem::initialize(const std::shared_ptr<fcl::CollisionGeometry<float>> & geom) {
+    void CollisionItem::initialize(const std::shared_ptr<fcl::CollisionGeometry<float>> & geom, int mask) {
         collisionObject = fcl::CollisionObject<float>(geom);
+        this->mask      = mask;
     }
 
     void CollisionItem::updateBuffer(const glm::vec3 & translation, const glm::quat & rotation) {
@@ -43,6 +45,7 @@ namespace VCX::Labs::OpenProj {
         // }
         for (int i = 0; i < items.size(); ++i) {
             for (int j = i + 1; j < items.size(); ++j) {
+                if (items[i]->collisionItem.mask != items[j]->collisionItem.mask) continue;
                 auto const & b0 = items[i]->collisionItem.collisionObject;
                 auto const & b1 = items[j]->collisionItem.collisionObject;
                 if (! b0.getAABB().overlap(b1.getAABB())) continue;
