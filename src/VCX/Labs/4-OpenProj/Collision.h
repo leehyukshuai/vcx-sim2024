@@ -35,7 +35,7 @@ namespace VCX::Labs::OpenProj {
         std::vector<Object *> items;
 
         float c     = 0.6f; // FRICTIONLESS_IMPULSE
-        float miu_N = 0.6f; // FRICTIONAL_IMPULSE
+        float miu_N = 0.4f; // FRICTIONAL_IMPULSE
         float miu_T = 3.0f; // FRICTIONAL_IMPULSE
 
         enum CollisionHandleMethod { FRICTIONLESS_IMPULSE,
