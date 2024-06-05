@@ -1,7 +1,10 @@
 #include "Car.h"
+#include <Eigen/Dense>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace VCX::Labs::OpenProj {
     Car::Car() { reset(); }
+
     std::vector<Object *> Car::objects() {
         return std::vector<Object *>({ &body, &wheels[0], &wheels[1], &wheels[2], &wheels[3] });
     }
@@ -25,11 +28,66 @@ namespace VCX::Labs::OpenProj {
             w.renderItem.color  = glm::vec3(0.2f, 0.2f, 0.3f);
             w.initialize();
         }
+
+        // initialize relatives
+        glm::vec3 c = calcCenter();
+        relatives.clear();
+        for (auto & o : objects()) {
+            glm::vec3 r = o->rigidBody->position - c;
+            relatives.push_back(r);
+        }
     }
 
     void Car::rigidify() {
-        // TODO: shape match
-        return;
+        // // TODO: shape match
+        // auto objs = objects();
+        // int  num  = objs.size();
+        // auto c    = calcCenter();
+
+        // glm::mat3 A, Al, Ar;
+        // for (int i = 0; i < num; ++i) {
+        //     auto & o  = objs[i];
+        //     auto & yi = o->rigidBody->position;
+        //     auto & ri = relatives[i];
+        //     Al += glm::outerProduct(yi - c, ri);
+        //     Ar += glm::outerProduct(ri, ri);
+        // }
+        // Ar = glm::inverse(Ar);
+        // A  = Al * Ar;
+
+        // auto polarDecomposition = [](const glm::mat3 & A) {
+        //     // Convert glm::mat3 A to Eigen::Matrix3d
+        //     Eigen::Matrix3f A_eigen = Eigen::Map<const Eigen::Matrix3f>(glm::value_ptr(A));
+
+        //     // Compute SVD decomposition
+        //     Eigen::JacobiSVD<Eigen::Matrix3f> svd(A_eigen, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        //     Eigen::Matrix3f                   U = svd.matrixU();
+        //     Eigen::Matrix3f                   V = svd.matrixV();
+
+        //     // Compute R = UV'
+        //     Eigen::Matrix3f R = U * V.transpose();
+
+        //     return glm::make_mat3(R.data());
+        // };
+
+        // auto R = polarDecomposition(A);
+        // for (int i = 0; i < num; ++i) {
+        //     auto & o  = objs[i];
+        //     auto & ri = relatives[i];
+
+        //     o->rigidBody->position = c + R * ri;
+        // }
+    }
+
+    glm::vec3 Car::calcCenter() {
+        glm::vec3 c;
+
+        auto objs = objects();
+        for (auto & o : objs) {
+            c += o->rigidBody->position;
+        }
+
+        return c / (float) objs.size();
     }
 
     void Car::move(bool keyMove[4]) {

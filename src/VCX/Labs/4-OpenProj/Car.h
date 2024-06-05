@@ -4,9 +4,12 @@
 
 namespace VCX::Labs::OpenProj {
     class Car {
+    private:
+        glm::vec3 calcCenter();
     public:
         Box                   body;
         std::vector<Sphere>   wheels;
+        std::vector<glm::vec3> relatives;
         std::vector<Object *> objects();
 
         Car();
