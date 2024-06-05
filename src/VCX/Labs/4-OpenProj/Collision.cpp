@@ -46,6 +46,7 @@ namespace VCX::Labs::OpenProj {
         for (int i = 0; i < items.size(); ++i) {
             for (int j = i + 1; j < items.size(); ++j) {
                 if (items[i]->collisionItem.mask != items[j]->collisionItem.mask) continue;
+                if (items[i]->rigidBody->isStatic && items[j]->rigidBody->isStatic) continue;
                 auto const & b0 = items[i]->collisionItem.collisionObject;
                 auto const & b1 = items[j]->collisionItem.collisionObject;
                 if (! b0.getAABB().overlap(b1.getAABB())) continue;
