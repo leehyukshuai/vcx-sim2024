@@ -53,4 +53,12 @@ namespace VCX::Labs::OpenProj {
         void  setMass() override;
         void  reset() override;
     };
+
+    class SphereBody : public RigidBody {
+    public:
+        float radius = 0.5f;
+        void  setInertia() override;
+        void  setMass() override;
+        void  reset() override;
+    };
 } // namespace VCX::Labs::OpenProj

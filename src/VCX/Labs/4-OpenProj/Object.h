@@ -35,4 +35,13 @@ namespace VCX::Labs::OpenProj {
         void initialize(int precision = 32);
     };
 
+    class Sphere : public Object {
+    public:
+        SphereBody sphereBody;
+
+        Sphere(float radius = 0.5f, int precision = 32);
+        void initialize(float radius, int precision = 32);
+        void initialize(int precision = 32);
+    };
+
 } // namespace VCX::Labs::OpenProj

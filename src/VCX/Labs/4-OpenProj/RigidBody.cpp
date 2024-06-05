@@ -104,4 +104,17 @@ namespace VCX::Labs::OpenProj {
         height = 1.0f;
         RigidBody::reset();
     }
+    void SphereBody::setInertia() {
+        inertia[0][0] = 2.0 * mass * radius * radius / 5.0;
+        inertia[1][1] = 2.0 * mass * radius * radius / 5.0;
+        inertia[2][2] = 2.0 * mass * radius * radius / 5.0;
+    }
+    void SphereBody::setMass() {
+        float pi = glm::pi<float>();
+        mass     = density * pi * radius * radius * radius * 4.0 / 3.0;
+    }
+    void SphereBody::reset() {
+        radius = 0.5f;
+        RigidBody::reset();
+    }
 } // namespace VCX::Labs::OpenProj
