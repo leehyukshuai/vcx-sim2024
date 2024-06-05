@@ -16,7 +16,8 @@ namespace VCX::Labs::OpenProj {
         std::vector<std::uint32_t> lineIndices;
 
         static Mesh generateBoxMesh(glm::vec3 dim);
-        static Mesh generateCylinderMesh(float radius, float height, int precision = 8);
+        static Mesh generateCylinderMesh(float radius, float height, int precision);
+        static Mesh generateSphereMesh(float radius, int precision);
     };
 
     class RenderItem {

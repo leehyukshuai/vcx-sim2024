@@ -28,6 +28,7 @@ namespace VCX::Labs::OpenProj {
         lineItem.UpdateVertexBuffer("position", span_bytes);
         faceItem.UpdateVertexBuffer("position", span_bytes);
     }
+
     Mesh Mesh::generateBoxMesh(glm::vec3 dim) {
         Mesh  ret;
         float x         = dim[0] / 2.0;
@@ -117,4 +118,77 @@ namespace VCX::Labs::OpenProj {
         return ret;
     }
 
+    Mesh Mesh::generateSphereMesh(float radius, int precision) {
+        Mesh ret;
+
+        // Vectors to hold the vertices and indices
+        std::vector<glm::vec3>     positions;
+        std::vector<std::uint32_t> triIndices;
+        std::vector<std::uint32_t> lineIndices;
+
+        // Generate vertices
+        for (int i = 0; i <= precision; ++i) {
+            float theta    = i * glm::pi<float>() / precision; // from 0 to π
+            float sinTheta = sin(theta);
+            float cosTheta = cos(theta);
+
+            for (int j = 0; j <= precision; ++j) {
+                float phi    = j * 2 * glm::pi<float>() / precision; // from 0 to 2π
+                float sinPhi = sin(phi);
+                float cosPhi = cos(phi);
+
+                glm::vec3 vertex;
+                vertex.x = radius * sinTheta * cosPhi;
+                vertex.y = radius * cosTheta;
+                vertex.z = radius * sinTheta * sinPhi;
+                positions.push_back(vertex);
+            }
+        }
+
+        // Generate triangle indices
+        for (int i = 0; i < precision; ++i) {
+            for (int j = 0; j < precision; ++j) {
+                int first  = (i * (precision + 1)) + j;
+                int second = first + precision + 1;
+
+                triIndices.push_back(first);
+                triIndices.push_back(second);
+                triIndices.push_back(first + 1);
+
+                triIndices.push_back(second);
+                triIndices.push_back(second + 1);
+                triIndices.push_back(first + 1);
+            }
+        }
+
+        // Generate line indices for wireframe
+        for (int i = 0; i < precision; ++i) {
+            for (int j = 0; j < precision; ++j) {
+                int first  = (i * (precision + 1)) + j;
+                int second = first + precision + 1;
+
+                lineIndices.push_back(first);
+                lineIndices.push_back(first + 1);
+
+                lineIndices.push_back(first);
+                lineIndices.push_back(second);
+
+                if (j == precision - 1) {
+                    lineIndices.push_back(first + 1);
+                    lineIndices.push_back(second + 1);
+                }
+                if (i == precision - 1) {
+                    lineIndices.push_back(second);
+                    lineIndices.push_back(second + 1);
+                }
+            }
+        }
+
+        // Assign the generated data to the mesh
+        ret.positions   = positions;
+        ret.triIndices  = triIndices;
+        ret.lineIndices = lineIndices;
+
+        return ret;
+    }
 } // namespace VCX::Labs::OpenProj
