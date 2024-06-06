@@ -16,7 +16,7 @@ namespace VCX::Labs::OpenProj {
         CaseCollide _caseCollide;
         CaseCar _caseCar;
 
-        std::size_t _caseId = 2;
+        std::size_t _caseId = 1;
 
         std::vector<std::reference_wrapper<Common::ICase>> _cases = { _caseNaive, _caseCollide, _caseCar };
 

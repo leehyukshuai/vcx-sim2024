@@ -129,17 +129,30 @@ namespace VCX::Labs::OpenProj {
     Road::Road() { reset(); }
     void Road::reset() {
         sects.clear();
-        sects.resize(3);
-        sects[0].boxBody.position    = glm::vec3(-30, 7.5, 0);
-        sects[0].boxBody.orientation = glm::quat(glm::vec3(0, 0, -glm::radians(30.0f)));
-        sects[1].boxBody.position    = glm::vec3(0, -0.5, 0);
-        sects[1].boxBody.orientation = glm::quat(glm::vec3(0, 0, 0));
-        sects[2].boxBody.position    = glm::vec3(30, 7.5, 0);
-        sects[2].boxBody.orientation = glm::quat(glm::vec3(0, 0, glm::radians(30.0f)));
+        sects.resize(5);
+
+        float width                = 64;
+        sects[0].boxBody.position  = glm::vec3(-32, 4, 0);
+        sects[0].boxBody.dimension = glm::vec3(1, 8, width);
+
+        sects[1].boxBody.position  = glm::vec3(0, -0.5, 0);
+        sects[1].boxBody.dimension = glm::vec3(64, 1, width);
+
+        sects[2].boxBody.position    = glm::vec3(32 + 16 * glm::cos(glm::radians(10.0f)), 16 * glm::sin(glm::radians(10.0f)) - 0.5, 0);
+        sects[2].boxBody.dimension   = glm::vec3(32, 1, width);
+        sects[2].boxBody.orientation = glm::quat(glm::vec3(0, 0, glm::radians(10.0f)));
+
+        sects[3].boxBody.position    = glm::vec3(32 + 32 * glm::cos(glm::radians(10.0f)) + 16 * glm::cos(glm::radians(20.0f)), 32 * glm::sin(glm::radians(10.0f)) + 16 * glm::sin(glm::radians(20.0f)) - 0.5, 0);
+        sects[3].boxBody.dimension   = glm::vec3(32, 1, width);
+        sects[3].boxBody.orientation = glm::quat(glm::vec3(0, 0, glm::radians(20.0f)));
+
+        sects[4].boxBody.position    = glm::vec3(32 + 32 * glm::cos(glm::radians(10.0f)) + 32 * glm::cos(glm::radians(20.0f)) + 16 * glm::cos(glm::radians(30.0f)), 32 * glm::sin(glm::radians(10.0f)) + 32 * glm::sin(glm::radians(20.0f)) + 16 * glm::sin(glm::radians(30.0f)) - 0.5, 0);
+        sects[4].boxBody.dimension   = glm::vec3(32, 1, width);
+        sects[4].boxBody.orientation = glm::quat(glm::vec3(0, 0, glm::radians(30.0f)));
+
         for (auto & w : sects) {
-            w.boxBody.isStatic  = true;
-            w.boxBody.dimension = glm::vec3(32, 1, 64);
-            w.renderItem.color  = glm::vec3(0.2f, 1.0f, 0.3f);
+            w.boxBody.isStatic = true;
+            w.renderItem.color = glm::vec3(0.2f, 0.8f, 0.3f);
             w.initialize();
         }
     }

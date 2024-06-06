@@ -9,7 +9,7 @@ namespace VCX::Labs::OpenProj {
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
         _collisionSystem.miu_N = 0.8f;
-        _collisionSystem.miu_T = 4.6f;
+        _collisionSystem.miu_T = 5.0f;
         resetScene();
     }
 
@@ -20,14 +20,18 @@ namespace VCX::Labs::OpenProj {
             if (ImGui::Combo("Collision Method", &currentItem, items, IM_ARRAYSIZE(items))) {
                 _collisionSystem.collisionMethod = static_cast<CollisionSystem::CollisionHandleMethod>(currentItem);
             }
-
+            ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
+            ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.01f, 40.0f);
+            ImGui::Spacing();
             ImGui::DragFloat("transl damping", &_translationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("gravity", &_gravity, 0.01f, 0.0f, 10.0f, "%.2f");
-            ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
-            ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 5.0f);
-            ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.01f, 5.0f);
-
+            ImGui::Spacing();
+            ImGui::DragFloat("torque", &_car.torque, 0.01f, 0.0f, 100.0f);
+            ImGui::DragFloat("brake", &_car.brake, 0.01f, 0.0f, 100.0f);
+            ImGui::DragFloat("stiffness", &_car.stiffness, 0.1f, 10.0f, 1000.0f);
+            ImGui::Spacing();
             ImGui::Checkbox("xray", &_renderSystem.xrayed);
             if (ImGui::Button("Reset")) {
                 resetScene();
@@ -81,6 +85,7 @@ namespace VCX::Labs::OpenProj {
 
         // rendering
         _cameraManager.Update(_camera);
+        _camera.Target = _car.body.boxBody.position;
         float aspect          = float(desiredSize.first) / desiredSize.second;
         auto  cameraTransform = _camera.GetTransformationMatrix(aspect);
 

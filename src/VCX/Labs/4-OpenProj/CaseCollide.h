@@ -28,7 +28,7 @@ namespace VCX::Labs::OpenProj {
 
     private:
         Engine::GL::UniqueRenderFrame _frame;
-        Engine::Camera                _camera { .Eye = glm::vec3(-3, 3, 3) };
+        Engine::Camera                _camera { .Eye = glm::vec3(-20, 20, 20) };
         Common::OrbitCameraManager    _cameraManager;
 
         bool _pause { true };

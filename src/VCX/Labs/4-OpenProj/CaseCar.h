@@ -30,10 +30,10 @@ namespace VCX::Labs::OpenProj {
 
     private:
         Engine::GL::UniqueRenderFrame _frame;
-        Engine::Camera                _camera { .Eye = glm::vec3(-10, 5, 5), .Target = glm::vec3(0, 2, 0) };
+        Engine::Camera                _camera { .Eye = glm::vec3(-30, 20, 20) };
         Common::OrbitCameraManager    _cameraManager;
 
-        bool _pause { true };
+        bool _pause { false };
 
         float _gravity              = 2.0f;
         float _translationalDamping = 0.1f;
