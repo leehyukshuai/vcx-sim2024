@@ -44,7 +44,7 @@ namespace VCX::Labs::OpenProj {
         Engine::GL::UniqueProgram program;
         std::vector<Object *>     items;
 
-        bool xrayed;
+        bool xrayed { false };
 
         RenderSystem();
         void draw(glm::mat4 cameraTransform);
