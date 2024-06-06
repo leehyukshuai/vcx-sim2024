@@ -14,6 +14,9 @@ namespace VCX::Labs::OpenProj {
     }
 
     void CaseCar::OnSetupPropsUI() {
+        if (ImGui::CollapsingHeader("Help", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::TextWrapped("IJKL: move around, semicolon: brake");
+        }
         if (ImGui::CollapsingHeader("Config", ImGuiTreeNodeFlags_DefaultOpen)) {
             const char * items[]     = { "Frictionless Impulse", "Frictional Impulse" };
             int          currentItem = static_cast<int>(_collisionSystem.collisionMethod);
