@@ -27,7 +27,7 @@ namespace VCX::Labs::OpenProj {
             ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
             ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 5.0f);
             ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.01f, 5.0f);
-
+            ImGui::Checkbox("solve contact", &_collisionSystem.solveContact);
             ImGui::Checkbox("xray", &_renderSystem.xrayed);
             if (ImGui::Button("Reset")) {
                 resetScene();
@@ -45,7 +45,7 @@ namespace VCX::Labs::OpenProj {
         OnProcessMouseControl(_cameraManager.getMouseMove());
         OnProcessKeyControl();
 
-        const int substeps = 5;
+        const int substeps = 8;
         // float     dt       = Engine::GetDeltaTime();
         float dt = 0.03f;
         float st = dt / substeps;
@@ -121,7 +121,7 @@ namespace VCX::Labs::OpenProj {
     }
 
     void CaseCollide::resetScene() {
-        std::srand(2);
+        std::srand(5);
         auto randomFloat = []() {
             return std::rand() * 1.0 / RAND_MAX;
         };
@@ -137,7 +137,7 @@ namespace VCX::Labs::OpenProj {
         Box * wall2                   = new Box(glm::vec3(10, 0.6f, 10));
         Box * wall3                   = new Box(glm::vec3(10, 0.6f, 10));
         Box * wall4                   = new Box(glm::vec3(10, 0.6f, 10));
-        floor->rigidBody->position    = glm::vec3(0, -1, 0);
+        floor->rigidBody->position    = glm::vec3(0, -2, 0);
         wall1->rigidBody->position    = glm::vec3(-6, 2, 0);
         wall1->rigidBody->orientation = glm::quat(glm::vec3(0, 0, -1.5));
         wall2->rigidBody->position    = glm::vec3(6, 2, 0);
@@ -161,26 +161,30 @@ namespace VCX::Labs::OpenProj {
             delete rb;
         }
         _rigidBodys.clear();
-        for (int i = 0; i < 20; ++i) {
-            if (i % 2) {
-                float r = 1.0f + randomFloat() * 1.5f;
-                float x = randomFloat() - 0.5;
-                float y = 10 + i * 8;
-                float z = randomFloat() - 0.5;
+        int num = 24;
+        for (int i = 0; i < num; ++i) {
+            float s = i / (num - 1.0);  // [0, 1]
 
-                Sphere * sphere             = new Sphere(r);
+            float x = randomFloat() - 0.5;
+            float y = 10 + i * 8;
+            float z = randomFloat() - 0.5;
+            float d = 1 - s + 0.2;
+
+            if (i % 2) {
+                float    r      = 1.0f + randomFloat() * (2 - s);
+                Sphere * sphere = new Sphere(r);
+
                 sphere->rigidBody->position = glm::vec3(x, y, z);
+                sphere->rigidBody->density  = d;
                 _rigidBodys.push_back(sphere);
             } else {
-                float dx = 1.0f + randomFloat() * 4.0f;
-                float dy = 1.0f + randomFloat() * 4.0f;
-                float dz = 1.0f + randomFloat() * 4.0f;
-                float x  = randomFloat() - 0.5;
-                float y  = 10 + i * 8;
-                float z  = randomFloat() - 0.5;
+                float dx  = 1.0f + randomFloat() * 3.0f * (2 - s);
+                float dy  = 1.0f + randomFloat() * 3.0f * (2 - s);
+                float dz  = 1.0f + randomFloat() * 3.0f * (2 - s);
+                Box * box = new Box(glm::vec3(dx, dy, dz));
 
-                Box * box                = new Box(glm::vec3(dx, dy, dz));
                 box->rigidBody->position = glm::vec3(x, y, z);
+                box->rigidBody->density  = d;
                 _rigidBodys.push_back(box);
             }
             if (i == 0) {
