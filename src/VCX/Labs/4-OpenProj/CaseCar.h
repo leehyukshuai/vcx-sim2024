@@ -39,7 +39,7 @@ namespace VCX::Labs::OpenProj {
         float _translationalDamping = 0.1f;
         float _rotationalDamping    = 0.02f;
 
-        bool keyMove[4] { false };
+        bool keyMove[5] { false };
 
         CollisionSystem _collisionSystem;
         RenderSystem    _renderSystem;

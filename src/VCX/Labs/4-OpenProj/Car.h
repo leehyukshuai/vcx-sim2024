@@ -5,18 +5,23 @@
 namespace VCX::Labs::OpenProj {
     class Car {
     private:
-        glm::vec3 calcCenter();
+        std::vector<std::vector<float>> distMatrix;
+
     public:
-        Box                   body;
-        std::vector<Sphere>   wheels;
-        std::vector<glm::vec3> relatives;
+        float stiffness { 128.0f };
+        float torque { 10.0f };
+        float brake { 16.0f };
+
+        Box                 body;
+        std::vector<Sphere> wheels;
+
         std::vector<Object *> objects();
 
         Car();
         void reset();
         void rigidify();
-        // keyMove: WASD
-        void move(bool keyMove[4]);
+        // keyMove: W+A+S+D+Brake
+        void move(bool keyMove[5]);
     };
 
     class Road {

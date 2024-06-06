@@ -8,8 +8,8 @@ namespace VCX::Labs::OpenProj {
     CaseCar::CaseCar() {
         _cameraManager.AutoRotate = false;
         _cameraManager.Save(_camera);
-        // higher miu_N can reduce penetrations
         _collisionSystem.miu_N = 0.8f;
+        _collisionSystem.miu_T = 4.6f;
         resetScene();
     }
 
@@ -31,7 +31,6 @@ namespace VCX::Labs::OpenProj {
             ImGui::Checkbox("xray", &_renderSystem.xrayed);
             if (ImGui::Button("Reset")) {
                 resetScene();
-                _pause = true;
             }
             ImGui::SameLine();
             if (ImGui::Button(! _pause ? "pause" : "start")) {
@@ -48,6 +47,7 @@ namespace VCX::Labs::OpenProj {
         keyMove[1] = ImGui::IsKeyDown(ImGuiKey_J);
         keyMove[2] = ImGui::IsKeyDown(ImGuiKey_K);
         keyMove[3] = ImGui::IsKeyDown(ImGuiKey_L);
+        keyMove[4] = ImGui::IsKeyDown(ImGuiKey_Semicolon);
     }
 
     Common::CaseRenderResult CaseCar::OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) {
@@ -64,6 +64,7 @@ namespace VCX::Labs::OpenProj {
         if (! _pause) {
             for (int t = 0; t < substeps; ++t) {
                 _car.move(keyMove);
+                _car.rigidify();
                 for (auto & obj : objs) {
                     obj->rigidBody->applyTranslDamping(_translationalDamping);
                     obj->rigidBody->applyRotateDamping(_rotationalDamping);
@@ -72,7 +73,6 @@ namespace VCX::Labs::OpenProj {
                 }
                 _collisionSystem.collisionDetect();
                 _collisionSystem.collisionHandle();
-                _car.rigidify();
                 for (auto & obj : objs) {
                     obj->rigidBody->move(st);
                 }

@@ -48,7 +48,6 @@ namespace VCX::Labs::OpenProj {
         }
         for (int i = 0; i < items.size(); ++i) {
             for (int j = i + 1; j < items.size(); ++j) {
-                if (items[i]->collisionItem.mask != items[j]->collisionItem.mask) continue;
                 if (items[i]->rigidBody->isStatic && items[j]->rigidBody->isStatic) continue;
                 auto const & b0 = items[i]->collisionItem.collisionObject;
                 auto const & b1 = items[j]->collisionItem.collisionObject;
@@ -96,7 +95,11 @@ namespace VCX::Labs::OpenProj {
                 if (collisionMethod == FRICTIONAL_IMPULSE) {
                     auto  vreln     = vrel_n * n;
                     auto  vrelt     = vrel - vreln;
-                    float A         = std::max(1 - miu_T * (1 + miu_N) * glm::length(vreln) / glm::length(vrelt), 0.0f);
+                    auto _miu_T = miu_T;
+                    if (contact.p1->collisionItem.mask && contact.p2->collisionItem.mask) {
+                        _miu_T = 0;
+                    }
+                    float A         = std::max(1 - _miu_T * (1 + miu_N) * glm::length(vreln) / glm::length(vrelt), 0.0f);
                     auto  vreln_new = -miu_N * vreln;
                     auto  vrelt_new = A * vrelt;
                     auto  vrel_new  = vreln_new + vrelt_new;
