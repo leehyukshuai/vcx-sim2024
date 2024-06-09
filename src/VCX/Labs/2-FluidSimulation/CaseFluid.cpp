@@ -75,7 +75,7 @@ namespace VCX::Labs::Fluid {
         ImGui::Spacing();
 
         if (ImGui::CollapsingHeader("Appearance")) {
-            _uniformDirty |= ImGui::Button("Phong Model", &_useBlinn, 0);
+            _uniformDirty |= ImGui::RadioButton("Phong Model", &_useBlinn, 0);
             ImGui::SameLine();
             _uniformDirty |= ImGui::RadioButton("Blinn-Phong Model", &_useBlinn, 1);
             _uniformDirty |= ImGui::SliderFloat("Shininess", &_shininess, 1, 128, "%.1f", ImGuiSliderFlags_Logarithmic);
