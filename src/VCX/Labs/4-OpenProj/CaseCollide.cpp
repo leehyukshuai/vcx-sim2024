@@ -163,11 +163,11 @@ namespace VCX::Labs::OpenProj {
         _rigidBodys.clear();
         int num = 24;
         for (int i = 0; i < num; ++i) {
-            float s = i / (num - 1.0);  // [0, 1]
+            float s = i / (num - 1.0); // [0, 1]
 
-            float x = randomFloat() - 0.5;
+            float x = randomFloat() * 2 - 1.0f;
             float y = 10 + i * 8;
-            float z = randomFloat() - 0.5;
+            float z = randomFloat() * 2 - 1.0f;
             float d = 1 - s + 0.2;
 
             if (i % 2) {
