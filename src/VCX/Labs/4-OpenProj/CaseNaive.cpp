@@ -32,7 +32,7 @@ namespace VCX::Labs::OpenProj {
             ImGui::DragFloat("rotate damping", &_rotationalDamping, 0.001f, 0.0f, 1.0f, "%.3f");
             ImGui::DragFloat("gravity", &_gravity, 0.01f, 0.0f, 10.0f, "%.2f");
             ImGui::DragFloat("restitution factor", &_collisionSystem.c, 0.01f, 0.0f, 1.0f, "%.2f");
-            ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 5.0f);
+            ImGui::DragFloat("miu_N", &_collisionSystem.miu_N, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("miu_T", &_collisionSystem.miu_T, 0.01f, 0.01f, 5.0f);
             ImGui::Checkbox("solve contact", &_collisionSystem.solveContact);
             ImGui::Checkbox("xray", &_renderSystem.xrayed);
