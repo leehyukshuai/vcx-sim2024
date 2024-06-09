@@ -45,10 +45,9 @@ namespace VCX::Labs::OpenProj {
         OnProcessMouseControl(_cameraManager.getMouseMove());
         OnProcessKeyControl();
 
-        const int substeps = 8;
-        // float     dt       = Engine::GetDeltaTime();
-        float dt = 0.03f;
-        float st = dt / substeps;
+        const int substeps = 16;
+        float     dt       = Engine::GetDeltaTime();
+        float     st       = dt / substeps;
         if (! _pause) {
             for (int t = 0; t < substeps; ++t) {
                 for (auto rb : _rigidBodys) {

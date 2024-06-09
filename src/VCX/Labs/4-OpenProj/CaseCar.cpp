@@ -65,9 +65,8 @@ namespace VCX::Labs::OpenProj {
         auto objs = _car.objects();
 
         const int substeps = 5;
-        float     dt       = 0.03f;
-        // float     dt       = Engine::GetDeltaTime();
-        float st = dt / substeps;
+        float     dt       = Engine::GetDeltaTime();
+        float     st       = dt / substeps;
         if (! _pause) {
             for (int t = 0; t < substeps; ++t) {
                 _car.move(keyMove);
@@ -88,7 +87,7 @@ namespace VCX::Labs::OpenProj {
 
         // rendering
         _cameraManager.Update(_camera);
-        _camera.Target = _car.body.boxBody.position;
+        _camera.Target        = _car.body.boxBody.position;
         float aspect          = float(desiredSize.first) / desiredSize.second;
         auto  cameraTransform = _camera.GetTransformationMatrix(aspect);
 

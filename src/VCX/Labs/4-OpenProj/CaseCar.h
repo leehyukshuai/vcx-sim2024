@@ -17,7 +17,7 @@ namespace VCX::Labs::OpenProj {
     public:
         CaseCar();
 
-        virtual std::string_view const GetName() override { return "CAR CAR CAR"; }
+        virtual std::string_view const GetName() override { return "Prototype Car"; }
 
         virtual void                     OnSetupPropsUI() override;
         virtual Common::CaseRenderResult OnRender(std::pair<std::uint32_t, std::uint32_t> const desiredSize) override;
