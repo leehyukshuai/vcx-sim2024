@@ -8,6 +8,8 @@
 #include "Labs/Common/OrbitCameraManager.h"
 
 #include "Object.h"
+#include "Coord.h"
+
 
 namespace VCX::Labs::OpenProj {
 
@@ -23,13 +25,24 @@ namespace VCX::Labs::OpenProj {
 
         void OnProcessMouseControl(glm::vec3 mourseDelta);
 
+        void resetScene();
+
     private:
-        Engine::GL::UniqueProgram     _program;
         Engine::GL::UniqueRenderFrame _frame;
-        Engine::Camera                _camera { .Eye = glm::vec3(-3, 3, 3) };
+        Engine::Camera                _camera { .Eye = glm::vec3(-6, 6, 6) };
         Common::OrbitCameraManager    _cameraManager;
 
-        glm::vec3 _color {1.0, 0.6, 0.8};
-        Cylinder _cylinder;
+        bool _pause { true };
+
+        float _gravity              = 2.0f;
+        float _translationalDamping = 0.1f;
+        float _rotationalDamping    = 0.02f;
+
+        CollisionSystem _collisionSystem;
+        RenderSystem    _renderSystem;
+        Coord _coord;
+
+        Sphere *_sphere;
+        Box    *_floor;
     };
 } // namespace VCX::Labs::OpenProj
