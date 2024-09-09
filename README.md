@@ -2,7 +2,7 @@
 
 项目基于北京大学2024**图形物理仿真**课程的vcx框架完成。
 
-主要实现了四个项目，项目报告详见review文件夹。
+主要实现了四个项目，项目报告详见review文件夹。（动图加载可能较久，麻烦耐心等待一下w）
 
 1. 刚体碰撞实验：![COLLISION](./review/COLLISION.gif)
 2. 流体仿真实验：![FLUID](./review/FLUID.gif)
